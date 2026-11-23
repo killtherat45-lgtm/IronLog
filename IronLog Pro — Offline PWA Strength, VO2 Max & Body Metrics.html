@@ -1,0 +1,3835 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#090d16">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="IronLog Pro">
+  <link id="pwa-manifest-link" rel="manifest" href="">
+  <link id="pwa-apple-icon" rel="apple-touch-icon" href="">
+  <title>IronLog Pro — Strength, Conditioning & Body Metrics</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #090d16;
+      color: #f8fafc;
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior-y: none;
+    }
+    .pb-safe {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    .pt-safe {
+      padding-top: env(safe-area-inset-top, 0px);
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.35); }
+      50% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+    }
+    .pr-glow {
+      animation: pulseGlow 2s infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#090d16] text-slate-100 antialiased selection:bg-emerald-500 selection:text-white">
+
+  <!-- TOP STICKY HEADER -->
+  <header class="sticky top-0 z-30 glass-panel border-b border-slate-800/90 px-4 py-3 pt-safe">
+    <div class="max-w-3xl mx-auto flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 shrink-0">
+          <i class="ph-bold ph-barbell text-slate-950 text-xl"></i>
+        </div>
+        <div class="min-w-0">
+          <h1 class="font-extrabold text-lg tracking-tight leading-none flex items-center gap-1.5">
+            Iron<span class="text-emerald-400">Log</span>
+            <span class="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-800 text-cyan-400 border border-slate-700">Pro</span>
+          </h1>
+          <p id="header-subtitle" class="text-xs text-slate-400 mt-0.5 truncate">Strength • VO2 Max • Kettlebell • Body</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 shrink-0">
+        <!-- Native PWA Install Button (Shown when Chrome fires beforeinstallprompt) -->
+        <button id="header-install-btn" onclick="triggerNativePWAInstall()" class="hidden items-center gap-1.5 bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/40 text-cyan-300 font-bold text-xs px-3 py-1.5 rounded-xl transition active:scale-95">
+          <i class="ph-bold ph-download-simple"></i>
+          <span>Install App</span>
+        </button>
+
+        <!-- Active Workout Live Timer Badge -->
+        <div id="active-session-header-controls" class="hidden flex items-center gap-2 shrink-0">
+          <div class="flex items-center gap-1.5 bg-slate-800/90 border border-slate-700 px-2.5 py-1.5 rounded-xl">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="workout-duration-display" class="font-mono text-xs font-bold text-slate-200">00:00</span>
+          </div>
+          <button onclick="openFinishWorkoutModal()" class="bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-extrabold text-xs px-3.5 py-2 rounded-xl transition shadow-md shadow-emerald-500/25">
+            Finish
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT AREA -->
+  <main id="app-content" class="flex-1 max-w-3xl w-full mx-auto px-4 pt-4 pb-36">
+    <!-- Dynamic Tab Views Rendered Here -->
+  </main>
+
+  <!-- FLOATING SMART REST TIMER BAR -->
+  <div id="rest-timer-bar" class="hidden fixed bottom-[68px] left-0 right-0 z-40 px-3 pb-2 pointer-events-none">
+    <div class="max-w-3xl mx-auto pointer-events-auto bg-slate-900/95 border border-emerald-500/50 rounded-2xl p-3 shadow-2xl shadow-black/90 backdrop-blur-xl">
+      <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-2.5">
+        <div id="rest-progress-fill" class="h-full bg-gradient-to-r from-emerald-500 to-cyan-400 transition-all duration-300" style="width: 100%"></div>
+      </div>
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+            <i class="ph-bold ph-timer text-xl"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-baseline gap-2">
+              <span id="rest-time-display" class="font-mono text-2xl font-bold text-white leading-none">01:30</span>
+              <span id="rest-exercise-label" class="text-[11px] text-slate-400 truncate">Rest Timer</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button onclick="adjustRestTime(-15)" class="px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono text-xs font-bold active:scale-95 transition">
+            -15s
+          </button>
+          <button onclick="adjustRestTime(15)" class="px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono text-xs font-bold active:scale-95 transition">
+            +15s
+          </button>
+          <button id="rest-pause-btn" onclick="toggleRestPause()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-400 active:scale-95 transition">
+            <i id="rest-pause-icon" class="ph-bold ph-pause text-base"></i>
+          </button>
+          <button onclick="stopRestTimer()" class="px-3 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 font-semibold text-xs active:scale-95 transition">
+            Skip
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM 5-TAB NAVIGATION BAR -->
+  <nav class="fixed bottom-0 left-0 right-0 z-40 glass-panel border-t border-slate-800/90 pb-safe">
+    <div class="max-w-3xl mx-auto grid grid-cols-5 h-16">
+      <button onclick="switchTab('workout')" data-tab="workout" class="nav-btn flex flex-col items-center justify-center gap-1 text-emerald-400 transition">
+        <i class="ph-fill ph-barbell text-xl"></i>
+        <span class="text-[10px] font-semibold">Workout</span>
+      </button>
+      <button onclick="switchTab('conditioning')" data-tab="conditioning" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-slate-200 transition">
+        <i class="ph-bold ph-heartbeat text-xl"></i>
+        <span class="text-[10px] font-medium">Conditioning</span>
+      </button>
+      <button onclick="switchTab('library')" data-tab="library" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-slate-200 transition">
+        <i class="ph-bold ph-books text-xl"></i>
+        <span class="text-[10px] font-medium">Library</span>
+      </button>
+      <button onclick="switchTab('progress')" data-tab="progress" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-slate-200 transition">
+        <i class="ph-bold ph-trophy text-xl"></i>
+        <span class="text-[10px] font-medium">Progress</span>
+      </button>
+      <button onclick="switchTab('body')" data-tab="body" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-slate-200 transition">
+        <i class="ph-bold ph-scales text-xl"></i>
+        <span class="text-[10px] font-medium">Body & Gear</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MODAL OVERLAY CONTAINER -->
+  <div id="modal-backdrop" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div id="modal-container" class="bg-[#111827] border border-slate-700/80 w-full max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <!-- Modal content dynamically injected -->
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast-container" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none w-[92%] max-w-sm"></div>
+
+  <script>
+    /**
+     * ============================================================================
+     * IRONLOG PRO — COMPLETE ARCHITECTURE & DATA MODELS
+     * ============================================================================
+     */
+    const STORAGE_KEYS = {
+      HISTORY: 'ironlog_pro_history_v2',
+      ACTIVE: 'ironlog_pro_active_v2',
+      TEMPLATES: 'ironlog_pro_templates_v2',
+      EXERCISES: 'ironlog_pro_exercises_v2',
+      CONDITIONING: 'ironlog_pro_conditioning_v2',
+      BODY: 'ironlog_pro_body_v2',
+      SETTINGS: 'ironlog_pro_settings_v2',
+      SAMPLE_FLAG: 'ironlog_pro_sample_v2'
+    };
+
+    // Comprehensive Exercise Database with Primary/Secondary Muscles, Equipment, Cues & Alternatives
+    const DEFAULT_EXERCISES = [
+      // CHEST
+      {
+        id: 'ex_bench_barbell', name: 'Barbell Bench Press', muscle: 'Chest', secondary: 'Triceps, Front Delts',
+        equipment: 'Barbell', targetRepRange: [6, 10],
+        cues: 'Retract shoulder blades, arch upper back slightly, lower bar to mid-chest, drive feet into floor.',
+        alternatives: ['ex_db_bench', 'ex_kb_floor_press', 'ex_pushups']
+      },
+      {
+        id: 'ex_db_bench', name: 'Dumbbell Bench Press', muscle: 'Chest', secondary: 'Triceps, Front Delts',
+        equipment: 'Dumbbell', targetRepRange: [8, 12],
+        cues: 'Neutral or 45-degree elbow tuck, full stretch at bottom without flaring elbows.',
+        alternatives: ['ex_bench_barbell', 'ex_kb_floor_press', 'ex_incline_db']
+      },
+      {
+        id: 'ex_incline_db', name: 'Incline Dumbbell Press', muscle: 'Chest', secondary: 'Upper Chest, Front Delts',
+        equipment: 'Dumbbell', targetRepRange: [8, 12],
+        cues: 'Set bench to 30 degrees. Control the eccentric for 2 seconds and press smoothly.',
+        alternatives: ['ex_db_bench', 'ex_kb_clean_press', 'ex_dips']
+      },
+      {
+        id: 'ex_kb_floor_press', name: 'Kettlebell Floor Press', muscle: 'Chest', secondary: 'Triceps, Core',
+        equipment: 'Kettlebell', targetRepRange: [8, 15],
+        cues: 'Lie flat with knees bent, rest bells on forearms, pause triceps lightly on floor each rep.',
+        alternatives: ['ex_db_bench', 'ex_pushups', 'ex_bench_barbell']
+      },
+      {
+        id: 'ex_dips', name: 'Weighted Chest Dips', muscle: 'Chest', secondary: 'Triceps, Front Delts',
+        equipment: 'Bodyweight', targetRepRange: [6, 12],
+        cues: 'Lean torso forward 20-30 degrees, descend until shoulders are slightly below elbows.',
+        alternatives: ['ex_pushups', 'ex_db_bench', 'ex_cable_fly']
+      },
+      {
+        id: 'ex_cable_fly', name: 'Cable Chest Fly', muscle: 'Chest', secondary: 'Front Delts',
+        equipment: 'Cable/Machine', targetRepRange: [10, 15],
+        cues: 'Maintain soft elbow bend, bring wrists together in a wide hugging arc.',
+        alternatives: ['ex_db_bench', 'ex_pushups']
+      },
+      {
+        id: 'ex_pushups', name: 'Push-Ups', muscle: 'Chest', secondary: 'Triceps, Core',
+        equipment: 'Bodyweight', targetRepRange: [12, 25],
+        cues: 'Rigid plank line from head to heels, chest touches floor, full lockout at top.',
+        alternatives: ['ex_kb_floor_press', 'ex_dips', 'ex_db_bench']
+      },
+
+      // BACK
+      {
+        id: 'ex_deadlift', name: 'Conventional Deadlift', muscle: 'Back', secondary: 'Hamstrings, Glutes, Grip',
+        equipment: 'Barbell', targetRepRange: [5, 8],
+        cues: 'Bar over mid-foot, brace lats ("protect armpits"), push floor away, lock hips with glutes.',
+        alternatives: ['ex_rdl', 'ex_kb_swing', 'ex_kb_deadlift']
+      },
+      {
+        id: 'ex_barbell_row', name: 'Bent-Over Barbell Row', muscle: 'Back', secondary: 'Biceps, Rear Delts, Lower Back',
+        equipment: 'Barbell', targetRepRange: [8, 12],
+        cues: 'Hinge torso to ~45 degrees, pull bar to lower ribs, squeeze shoulder blades together.',
+        alternatives: ['ex_kb_gorilla_row', 'ex_seated_row', 'ex_pullups']
+      },
+      {
+        id: 'ex_pullups', name: 'Pull-Ups', muscle: 'Back', secondary: 'Biceps, Core, Forearms',
+        equipment: 'Bodyweight', targetRepRange: [6, 12],
+        cues: 'Start from dead hang, drive elbows down toward hips until chin clears bar.',
+        alternatives: ['ex_lat_pulldown', 'ex_barbell_row', 'ex_kb_gorilla_row']
+      },
+      {
+        id: 'ex_lat_pulldown', name: 'Lat Pulldown', muscle: 'Back', secondary: 'Biceps, Rear Delts',
+        equipment: 'Cable/Machine', targetRepRange: [8, 12],
+        cues: 'Keep chest proud, pull bar to upper collarbone without excessive body swing.',
+        alternatives: ['ex_pullups', 'ex_seated_row']
+      },
+      {
+        id: 'ex_seated_row', name: 'Seated Cable Row', muscle: 'Back', secondary: 'Rhomboids, Biceps',
+        equipment: 'Cable/Machine', targetRepRange: [10, 15],
+        cues: 'Sit tall, allow shoulder blades to protract forward slightly, then pull to abdomen.',
+        alternatives: ['ex_barbell_row', 'ex_kb_gorilla_row']
+      },
+      {
+        id: 'ex_kb_gorilla_row', name: 'Kettlebell Gorilla Row', muscle: 'Back', secondary: 'Lats, Core, Hamstrings',
+        equipment: 'Kettlebell', targetRepRange: [10, 16],
+        cues: 'Wide athletic hinge stance, alternate rowing kettlebells explosively while keeping hips square.',
+        alternatives: ['ex_barbell_row', 'ex_seated_row', 'ex_pullups']
+      },
+
+      // LEGS
+      {
+        id: 'ex_squat', name: 'Barbell Back Squat', muscle: 'Legs', secondary: 'Glutes, Core, Lower Back',
+        equipment: 'Barbell', targetRepRange: [6, 10],
+        cues: 'Brace 360 degrees into belt/core, break at hips and knees together, descend below parallel.',
+        alternatives: ['ex_kb_goblet_squat', 'ex_leg_press', 'ex_bulgarian_split']
+      },
+      {
+        id: 'ex_rdl', name: 'Romanian Deadlift (RDL)', muscle: 'Legs', secondary: 'Glutes, Lower Back',
+        equipment: 'Barbell', targetRepRange: [8, 12],
+        cues: 'Soft knee bend, push hips straight back until deep hamstring stretch, keep bar against thighs.',
+        alternatives: ['ex_deadlift', 'ex_leg_curl', 'ex_kb_swing']
+      },
+      {
+        id: 'ex_kb_goblet_squat', name: 'Kettlebell Goblet Squat', muscle: 'Legs', secondary: 'Core, Upper Back, Glutes',
+        equipment: 'Kettlebell', targetRepRange: [10, 15],
+        cues: 'Hold kettlebell by horns tight to chest, elbows inside knees at bottom, keep torso upright.',
+        alternatives: ['ex_squat', 'ex_leg_press', 'ex_bulgarian_split']
+      },
+      {
+        id: 'ex_leg_press', name: 'Leg Press', muscle: 'Legs', secondary: 'Glutes, Quads',
+        equipment: 'Cable/Machine', targetRepRange: [10, 15],
+        cues: 'Keep lower back flat against pad, control descent to 90+ degrees knee flexion.',
+        alternatives: ['ex_squat', 'ex_kb_goblet_squat']
+      },
+      {
+        id: 'ex_bulgarian_split', name: 'Bulgarian Split Squat', muscle: 'Legs', secondary: 'Glutes, Balance, Core',
+        equipment: 'Dumbbell', targetRepRange: [8, 12],
+        cues: 'Rear foot elevated on bench, drop back knee toward floor, drive through front mid-foot.',
+        alternatives: ['ex_kb_goblet_squat', 'ex_squat']
+      },
+      {
+        id: 'ex_leg_curl', name: 'Seated Leg Curl', muscle: 'Legs', secondary: 'Calves',
+        equipment: 'Cable/Machine', targetRepRange: [10, 15],
+        cues: 'Lock lap pad snugly, curl heels smoothly and control the return.',
+        alternatives: ['ex_rdl', 'ex_kb_swing']
+      },
+
+      // SHOULDERS
+      {
+        id: 'ex_ohp', name: 'Overhead Barbell Press', muscle: 'Shoulders', secondary: 'Triceps, Upper Chest, Core',
+        equipment: 'Barbell', targetRepRange: [6, 10],
+        cues: 'Squeeze glutes and abs tight, press bar vertically past face, lock out biceps by ears.',
+        alternatives: ['ex_kb_clean_press', 'ex_db_shoulder']
+      },
+      {
+        id: 'ex_db_shoulder', name: 'Seated Dumbbell Press', muscle: 'Shoulders', secondary: 'Triceps',
+        equipment: 'Dumbbell', targetRepRange: [8, 12],
+        cues: 'Keep wrists stacked over elbows, lower dumbbells to ear level.',
+        alternatives: ['ex_ohp', 'ex_kb_clean_press']
+      },
+      {
+        id: 'ex_kb_clean_press', name: 'Kettlebell Clean & Press', muscle: 'Shoulders', secondary: 'Full Body, Core, Triceps',
+        equipment: 'Kettlebell', targetRepRange: [6, 12],
+        cues: 'Zip kettlebell into rack position with soft wrist, brace core, press overhead.',
+        alternatives: ['ex_ohp', 'ex_db_shoulder', 'ex_kb_snatch']
+      },
+      {
+        id: 'ex_lat_raise', name: 'Dumbbell Lateral Raise', muscle: 'Shoulders', secondary: 'Upper Traps',
+        equipment: 'Dumbbell', targetRepRange: [12, 20],
+        cues: 'Lead with elbows out to the sides (30 deg scapular plane) to shoulder height.',
+        alternatives: ['ex_face_pull', 'ex_kb_clean_press']
+      },
+      {
+        id: 'ex_face_pull', name: 'Cable Face Pull', muscle: 'Shoulders', secondary: 'Rear Delts, Rotator Cuff',
+        equipment: 'Cable/Machine', targetRepRange: [12, 20],
+        cues: 'Pull rope toward forehead while externally rotating thumbs backward.',
+        alternatives: ['ex_lat_raise', 'ex_kb_halo']
+      },
+
+      // ARMS
+      {
+        id: 'ex_barbell_curl', name: 'Barbell Bicep Curl', muscle: 'Arms', secondary: 'Forearms',
+        equipment: 'Barbell', targetRepRange: [8, 12],
+        cues: 'Pin elbows to sides, curl smoothly without leaning back.',
+        alternatives: ['ex_hammer_curl']
+      },
+      {
+        id: 'ex_hammer_curl', name: 'Dumbbell Hammer Curl', muscle: 'Arms', secondary: 'Brachialis, Forearms',
+        equipment: 'Dumbbell', targetRepRange: [10, 15],
+        cues: 'Neutral palms-facing grip throughout the full range of motion.',
+        alternatives: ['ex_barbell_curl']
+      },
+      {
+        id: 'ex_tricep_pushdown', name: 'Cable Tricep Pushdown', muscle: 'Arms', secondary: 'Front Delts',
+        equipment: 'Cable/Machine', targetRepRange: [10, 15],
+        cues: 'Keep upper arms locked vertically, extend elbows fully and squeeze triceps.',
+        alternatives: ['ex_dips', 'ex_kb_floor_press']
+      },
+
+      // CORE
+      {
+        id: 'ex_hanging_leg', name: 'Hanging Leg Raise', muscle: 'Core', secondary: 'Hip Flexors, Grip',
+        equipment: 'Bodyweight', targetRepRange: [10, 15],
+        cues: 'Curl pelvis upward toward ribs rather than just swinging legs.',
+        alternatives: ['ex_plank', 'ex_kb_tgu']
+      },
+      {
+        id: 'ex_plank', name: 'Weighted Plank (sec)', muscle: 'Core', secondary: 'Shoulders, Glutes',
+        equipment: 'Bodyweight', targetRepRange: [45, 90],
+        isTimed: true,
+        cues: 'Posterior pelvic tilt, squeeze glutes and quads hard, breathe steadily.',
+        alternatives: ['ex_hanging_leg', 'ex_farmer_carry']
+      },
+
+      // FULL BODY / CONDITIONING / KETTLEBELL / FIREFIGHTER
+      {
+        id: 'ex_kb_swing', name: 'Kettlebell Two-Hand Swing', muscle: 'Full Body/Conditioning', secondary: 'Hamstrings, Glutes, Core, Grip',
+        equipment: 'Kettlebell', targetRepRange: [15, 30],
+        cues: 'Explosive hip hinge (not a squat), snap hips to float bell to chest height, plank at top.',
+        alternatives: ['ex_rdl', 'ex_kb_snatch', 'ex_deadlift']
+      },
+      {
+        id: 'ex_kb_snatch', name: 'Kettlebell Snatch', muscle: 'Full Body/Conditioning', secondary: 'Shoulders, Posterior Chain, Cardio',
+        equipment: 'Kettlebell', targetRepRange: [10, 20],
+        cues: 'Powerful hip drive, punch hand straight through the handle at overhead lockout.',
+        alternatives: ['ex_kb_swing', 'ex_kb_clean_press']
+      },
+      {
+        id: 'ex_kb_tgu', name: 'Turkish Get-Up (TGU)', muscle: 'Full Body/Conditioning', secondary: 'Core, Shoulders, Hips',
+        equipment: 'Kettlebell', targetRepRange: [3, 6],
+        cues: 'Keep eyes locked on the kettlebell overhead through every deliberate transition.',
+        alternatives: ['ex_plank', 'ex_kb_clean_press']
+      },
+      {
+        id: 'ex_kb_halo', name: 'Kettlebell Halo', muscle: 'Shoulders', secondary: 'Core, Thoracic Mobility',
+        equipment: 'Kettlebell', targetRepRange: [10, 16],
+        cues: 'Hold bell upside-down by horns, orbit tight around head while keeping ribs braced down.',
+        alternatives: ['ex_face_pull', 'ex_lat_raise']
+      },
+      {
+        id: 'ex_farmer_carry', name: 'Heavy Farmer Carries (sec)', muscle: 'Full Body/Conditioning', secondary: 'Grip, Traps, Core, Legs',
+        equipment: 'Firefighter/Odd Object', targetRepRange: [30, 60],
+        isTimed: true,
+        cues: 'Tall posture, pack shoulders down, brisk controlled steps without lateral sway.',
+        alternatives: ['ex_deadlift', 'ex_kb_swing']
+      },
+      {
+        id: 'ex_sandbag_carry', name: 'Sandbag / Hose Shoulder Carry (sec)', muscle: 'Full Body/Conditioning', secondary: 'Core, Back, Legs, Work Capacity',
+        equipment: 'Firefighter/Odd Object', targetRepRange: [30, 60],
+        isTimed: true,
+        cues: 'Bear-hug or shoulder load tightly, maintain steady nasal/rhythmic breathing under load.',
+        alternatives: ['ex_farmer_carry', 'ex_kb_goblet_squat']
+      },
+      {
+        id: 'ex_sled_push', name: 'Heavy Sled Push / Drag (sec)', muscle: 'Full Body/Conditioning', secondary: 'Quads, Calves, Lungs',
+        equipment: 'Firefighter/Odd Object', targetRepRange: [20, 45],
+        isTimed: true,
+        cues: '45-degree forward lean, drive knees hard with short powerful strides.',
+        alternatives: ['ex_leg_press', 'ex_kb_swing']
+      },
+      {
+        id: 'ex_stair_climb', name: 'Weighted Stair / Step-Up Climb (sec)', muscle: 'Full Body/Conditioning', secondary: 'Quads, Glutes, VO2 Max',
+        equipment: 'Firefighter/Odd Object', targetRepRange: [60, 180],
+        isTimed: true,
+        cues: 'Simulate air-pack climb: full foot placement on step, steady relentless cadence.',
+        alternatives: ['ex_bulgarian_split', 'ex_sled_push']
+      }
+    ];
+
+    // Built-in Training Splits (Upper/Lower, PPL, Full Body, Firefighter, Kettlebell)
+    const DEFAULT_TEMPLATES = [
+      {
+        id: 'tpl_ppl_push',
+        name: 'Push Day (Chest, Shoulders, Tris)',
+        category: 'PPL',
+        exercises: [
+          { exerciseId: 'ex_bench_barbell', defaultSets: 3, restSeconds: 150 },
+          { exerciseId: 'ex_incline_db', defaultSets: 3, restSeconds: 90 },
+          { exerciseId: 'ex_db_shoulder', defaultSets: 3, restSeconds: 90 },
+          { exerciseId: 'ex_lat_raise', defaultSets: 3, restSeconds: 60 },
+          { exerciseId: 'ex_tricep_pushdown', defaultSets: 3, restSeconds: 60 }
+        ]
+      },
+      {
+        id: 'tpl_ppl_pull',
+        name: 'Pull Day (Back, Rear Delts, Bis)',
+        category: 'PPL',
+        exercises: [
+          { exerciseId: 'ex_barbell_row', defaultSets: 3, restSeconds: 120 },
+          { exerciseId: 'ex_pullups', defaultSets: 3, restSeconds: 120 },
+          { exerciseId: 'ex_seated_row', defaultSets: 3, restSeconds: 90 },
+          { exerciseId: 'ex_face_pull', defaultSets: 3, restSeconds: 60 },
+          { exerciseId: 'ex_hammer_curl', defaultSets: 3, restSeconds: 60 }
+        ]
+      },
+      {
+        id: 'tpl_ppl_legs',
+        name: 'Leg Day (Quads, Hams, Glutes)',
+        category: 'PPL',
+        exercises: [
+          { exerciseId: 'ex_squat', defaultSets: 3, restSeconds: 180 },
+          { exerciseId: 'ex_rdl', defaultSets: 3, restSeconds: 120 },
+          { exerciseId: 'ex_leg_press', defaultSets: 3, restSeconds: 90 },
+          { exerciseId: 'ex_leg_curl', defaultSets: 3, restSeconds: 60 },
+          { exerciseId: 'ex_hanging_leg', defaultSets: 3, restSeconds: 60 }
+        ]
+      },
+      {
+        id: 'tpl_upper',
+        name: 'Upper Body Power & Hypertrophy',
+        category: 'Upper/Lower',
+        exercises: [
+          { exerciseId: 'ex_bench_barbell', defaultSets: 3, restSeconds: 150 },
+          { exerciseId: 'ex_barbell_row', defaultSets: 3, restSeconds: 120 },
+          { exerciseId: 'ex_ohp', defaultSets: 3, restSeconds: 120 },
+          { exerciseId: 'ex_lat_pulldown', defaultSets: 3, restSeconds: 90 },
+          { exerciseId: 'ex_barbell_curl', defaultSets: 2, restSeconds: 60 }
+        ]
+      },
+      {
+        id: 'tpl_lower',
+        name: 'Lower Body & Posterior Chain',
+        category: 'Upper/Lower',
+        exercises: [
+          { exerciseId: 'ex_deadlift', defaultSets: 3, restSeconds: 180 },
+          { exerciseId: 'ex_kb_goblet_squat', defaultSets: 3, restSeconds: 90 },
+          { exerciseId: 'ex_bulgarian_split', defaultSets: 3, restSeconds: 90 },
+          { exerciseId: 'ex_leg_curl', defaultSets: 3, restSeconds: 60 },
+          { exerciseId: 'ex_plank', defaultSets: 3, restSeconds: 60 }
+        ]
+      },
+      {
+        id: 'tpl_firefighter',
+        name: 'Firefighter Work Capacity & CPAT Prep',
+        category: 'Firefighter',
+        exercises: [
+          { exerciseId: 'ex_deadlift', defaultSets: 3, restSeconds: 150 },
+          { exerciseId: 'ex_ohp', defaultSets: 3, restSeconds: 120 },
+          { exerciseId: 'ex_farmer_carry', defaultSets: 4, restSeconds: 75 },
+          { exerciseId: 'ex_sandbag_carry', defaultSets: 3, restSeconds: 90 },
+          { exerciseId: 'ex_sled_push', defaultSets: 4, restSeconds: 90 },
+          { exerciseId: 'ex_stair_climb', defaultSets: 3, restSeconds: 90 }
+        ]
+      },
+      {
+        id: 'tpl_kb_armor',
+        name: 'Kettlebell Full-Body Complex',
+        category: 'Kettlebell',
+        exercises: [
+          { exerciseId: 'ex_kb_halo', defaultSets: 2, restSeconds: 45 },
+          { exerciseId: 'ex_kb_swing', defaultSets: 5, restSeconds: 60 },
+          { exerciseId: 'ex_kb_clean_press', defaultSets: 4, restSeconds: 90 },
+          { exerciseId: 'ex_kb_goblet_squat', defaultSets: 4, restSeconds: 75 },
+          { exerciseId: 'ex_kb_gorilla_row', defaultSets: 3, restSeconds: 60 },
+          { exerciseId: 'ex_kb_tgu', defaultSets: 3, restSeconds: 90 }
+        ]
+      },
+      {
+        id: 'tpl_kb_minimalist',
+        name: 'Kettlebell Simple & Sinister Style',
+        category: 'Kettlebell',
+        exercises: [
+          { exerciseId: 'ex_kb_goblet_squat', defaultSets: 3, restSeconds: 60 },
+          { exerciseId: 'ex_kb_swing', defaultSets: 5, restSeconds: 60 },
+          { exerciseId: 'ex_kb_tgu', defaultSets: 5, restSeconds: 90 }
+        ]
+      }
+    ];
+
+    // VO2 Max & Kettlebell Conditioning Protocols
+    const CONDITIONING_PROTOCOLS = [
+      {
+        id: 'vo2_norwegian',
+        title: 'Norwegian 4×4 VO2 Max',
+        badge: 'Gold Standard VO2',
+        color: 'emerald',
+        description: '4 intervals of 4 min at 85–95% Max HR separated by 3 min active recovery. Proven maximal stroke volume booster.',
+        warmupSec: 300,
+        workSec: 240,
+        restSec: 180,
+        rounds: 4,
+        cooldownSec: 180
+      },
+      {
+        id: 'vo2_billat',
+        title: '30/30 Billat Intervals',
+        badge: 'vVO2max Speed',
+        color: 'cyan',
+        description: '12 rounds of 30s hard effort at ~100% vVO2max / 30s easy float. Accumulates high time near peak oxygen uptake.',
+        warmupSec: 180,
+        workSec: 30,
+        restSec: 30,
+        rounds: 12,
+        cooldownSec: 120
+      },
+      {
+        id: 'vo2_tabata',
+        title: 'Tabata 20/10 Sprint',
+        badge: 'Anaerobic + VO2',
+        color: 'amber',
+        description: '8 rounds of 20s all-out supramaximal effort (air bike, sprints, or KB swings) / 10s rest.',
+        warmupSec: 120,
+        workSec: 20,
+        restSec: 10,
+        rounds: 8,
+        cooldownSec: 120
+      },
+      {
+        id: 'kb_emom_15',
+        title: 'Kettlebell 15-Min EMOM',
+        badge: 'Kettlebell Conditioning',
+        color: 'purple',
+        description: 'Every Minute on the Minute for 15 mins: Perform 15–20 KB Swings or 5 Clean & Press each side, rest remainder of minute.',
+        warmupSec: 60,
+        workSec: 40,
+        restSec: 20,
+        rounds: 15,
+        cooldownSec: 60
+      },
+      {
+        id: 'zone2_base',
+        title: 'Zone 2 Aerobic Base (35 Min)',
+        badge: 'Mitochondrial Base',
+        color: 'teal',
+        description: '35 minutes steady nasal-breathing aerobic work at 65–75% Max HR (Maffetone / Zone 2).',
+        warmupSec: 0,
+        workSec: 2100,
+        restSec: 0,
+        rounds: 1,
+        cooldownSec: 0
+      }
+    ];
+
+    const DEFAULT_SETTINGS = {
+      unit: 'lbs', // 'lbs' | 'kg'
+      heightUnit: 'ft', // 'ft' | 'cm'
+      heightFeet: 5,
+      heightInches: 10,
+      heightCm: 178,
+      age: 32,
+      restingHR: 60,
+      defaultRestSeconds: 90,
+      autoStartRest: true,
+      soundEnabled: true
+    };
+
+    // Global State
+    let state = {
+      currentTab: 'workout',
+      history: [],
+      activeWorkout: null,
+      templates: [],
+      exercises: [],
+      conditioningLogs: [],
+      bodyLogs: [],
+      settings: { ...DEFAULT_SETTINGS },
+      hasSampleData: false,
+
+      // UI Filters & Selections
+      templateCategoryFilter: 'All',
+      librarySearch: '',
+      libraryMuscleFilter: 'All',
+      libraryEquipFilter: 'All',
+      selectedProgressExerciseId: 'ex_bench_barbell',
+      progressMetric: '1rm', // '1rm' | 'maxWeight' | 'maxReps' | 'volume'
+      expandedHistoryIds: new Set(),
+
+      // Rest Timer State
+      restTimer: {
+        active: false,
+        paused: false,
+        totalSeconds: 90,
+        remainingSeconds: 90,
+        exerciseName: '',
+        intervalId: null
+      },
+
+      // Active Strength Session Timer
+      workoutTimerInterval: null,
+
+      // Conditioning / VO2 Max Interval Timer State
+      condTimer: {
+        active: false,
+        paused: false,
+        protocolTitle: 'Norwegian 4×4 VO2 Max',
+        phase: 'READY', // 'WARMUP' | 'WORK' | 'REST' | 'COOLDOWN' | 'DONE'
+        currentRound: 1,
+        totalRounds: 4,
+        phaseTotalSec: 240,
+        phaseRemainingSec: 240,
+        warmupSec: 300,
+        workSec: 240,
+        restSec: 180,
+        cooldownSec: 180,
+        elapsedTotalSec: 0,
+        repCounter: 0,
+        intervalId: null
+      },
+
+      // PWA Installation & Offline Status
+      pwa: {
+        deferredPrompt: null,
+        isStandalone: false,
+        swRegistered: false,
+        offlineReady: false
+      }
+    };
+
+    /**
+     * ============================================================================
+     * SELF-CONTAINED PWA ENGINE (DYNAMIC CANVAS ICONS, MANIFEST & SERVICE WORKER)
+     * ============================================================================
+     */
+    function generatePWAIconDataURL(size) {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+
+      // Rounded Obsidian Background
+      const r = size * 0.22;
+      ctx.fillStyle = '#090d16';
+      ctx.beginPath();
+      ctx.moveTo(r, 0);
+      ctx.lineTo(size - r, 0);
+      ctx.quadraticCurveTo(size, 0, size, r);
+      ctx.lineTo(size, size - r);
+      ctx.quadraticCurveTo(size, size, size - r, size);
+      ctx.lineTo(r, size);
+      ctx.quadraticCurveTo(0, size, 0, size - r);
+      ctx.lineTo(0, r);
+      ctx.quadraticCurveTo(0, 0, r, 0);
+      ctx.closePath();
+      ctx.fill();
+
+      // Subtle Emerald/Cyan Radial Glow
+      const grad = ctx.createLinearGradient(0, 0, size, size);
+      grad.addColorStop(0, '#10b981');
+      grad.addColorStop(1, '#06b6d4');
+
+      ctx.strokeStyle = 'rgba(16, 185, 129, 0.35)';
+      ctx.lineWidth = size * 0.03;
+      ctx.stroke();
+
+      // Draw Barbell / Kettlebell Emblem
+      ctx.fillStyle = grad;
+      const centerY = size * 0.5;
+      const barH = size * 0.07;
+      ctx.fillRect(size * 0.2, centerY - barH / 2, size * 0.6, barH);
+
+      // Inner & Outer Weight Plates
+      const plateW = size * 0.065;
+      const innerH = size * 0.38;
+      const outerH = size * 0.26;
+      const radius = size * 0.02;
+
+      const drawPlate = (x, h) => {
+        ctx.beginPath();
+        ctx.roundRect(x, centerY - h / 2, plateW, h, radius);
+        ctx.fill();
+      };
+
+      drawPlate(size * 0.26, innerH);
+      drawPlate(size * 0.17, outerH);
+      drawPlate(size * 0.675, innerH);
+      drawPlate(size * 0.765, outerH);
+
+      return canvas.toDataURL('image/png');
+    }
+
+    function initPWAFeatures() {
+      try {
+        // Detect if already running as installed standalone app
+        state.pwa.isStandalone =
+          window.matchMedia('(display-mode: standalone)').matches ||
+          window.navigator.standalone === true;
+
+        // 1. Generate dynamic 192x192 & 512x512 PNG icons
+        const icon192 = generatePWAIconDataURL(192);
+        const icon512 = generatePWAIconDataURL(512);
+
+        const appleIconLink = document.getElementById('pwa-apple-icon');
+        if (appleIconLink) appleIconLink.href = icon192;
+
+        // 2. Build dynamic Web App Manifest Blob
+        const manifestObj = {
+          name: 'IronLog Pro — Workout & Conditioning',
+          short_name: 'IronLog',
+          description: 'Private offline strength, kettlebell, VO2 max, and body metrics tracker.',
+          start_url: window.location.href,
+          scope: './',
+          display: 'standalone',
+          orientation: 'portrait',
+          background_color: '#090d16',
+          theme_color: '#090d16',
+          icons: [
+            { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+            { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+          ]
+        };
+
+        const manifestBlob = new Blob([JSON.stringify(manifestObj)], { type: 'application/manifest+json' });
+        const manifestURL = URL.createObjectURL(manifestBlob);
+        const manifestLink = document.getElementById('pwa-manifest-link');
+        if (manifestLink) manifestLink.href = manifestURL;
+
+        // 3. Register inline Service Worker for Offline Airplane Mode Caching
+        if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+          const swCode = `
+            const CACHE_NAME = 'ironlog-pwa-v1';
+            self.addEventListener('install', (event) => {
+              self.skipWaiting();
+              event.waitUntil(
+                caches.open(CACHE_NAME).then((cache) => {
+                  return cache.addAll(['./', self.location.origin]).catch(() => {});
+                })
+              );
+            });
+            self.addEventListener('activate', (event) => {
+              event.waitUntil(self.clients.claim());
+            });
+            self.addEventListener('fetch', (event) => {
+              if (event.request.method !== 'GET') return;
+              event.respondWith(
+                caches.match(event.request).then((cached) => {
+                  const networkFetch = fetch(event.request).then((response) => {
+                    if (response && response.status === 200) {
+                      const clone = response.clone();
+                      caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+                    }
+                    return response;
+                  }).catch(() => cached);
+                  return cached || networkFetch;
+                })
+              );
+            });
+          `;
+          const swBlob = new Blob([swCode], { type: 'application/javascript' });
+          const swURL = URL.createObjectURL(swBlob);
+          navigator.serviceWorker.register(swURL)
+            .then(() => {
+              state.pwa.swRegistered = true;
+              state.pwa.offlineReady = true;
+              if (state.currentTab === 'body') renderCurrentTab();
+            })
+            .catch(() => {
+              // Blob SW may be restricted on some preview sandboxes; localStorage still works 100% offline
+              state.pwa.swRegistered = false;
+            });
+        }
+
+        // 4. Listen for Chrome's native Install Prompt event
+        window.addEventListener('beforeinstallprompt', (e) => {
+          e.preventDefault();
+          state.pwa.deferredPrompt = e;
+          updateInstallButtonsVisibility();
+          if (state.currentTab === 'body') renderCurrentTab();
+        });
+
+        window.addEventListener('appinstalled', () => {
+          state.pwa.deferredPrompt = null;
+          state.pwa.isStandalone = true;
+          updateInstallButtonsVisibility();
+          showToast('IronLog Pro installed to your Home Screen!', 'success');
+          if (state.currentTab === 'body') renderCurrentTab();
+        });
+      } catch (err) {
+        console.warn('PWA init notice:', err);
+      }
+    }
+
+    function updateInstallButtonsVisibility() {
+      const headerBtn = document.getElementById('header-install-btn');
+      if (!headerBtn) return;
+      if (state.pwa.deferredPrompt && !state.pwa.isStandalone) {
+        headerBtn.classList.remove('hidden');
+        headerBtn.classList.add('flex');
+      } else {
+        headerBtn.classList.add('hidden');
+        headerBtn.classList.remove('flex');
+      }
+    }
+
+    async function triggerNativePWAInstall() {
+      if (!state.pwa.deferredPrompt) {
+        openInstallGuideModal();
+        return;
+      }
+      state.pwa.deferredPrompt.prompt();
+      const { outcome } = await state.pwa.deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        state.pwa.deferredPrompt = null;
+        updateInstallButtonsVisibility();
+      }
+    }
+
+    function openInstallGuideModal() {
+      openModal(`
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+          <h3 class="font-bold text-base text-white">Install as Standalone App</h3>
+          <button onclick="closeModal()" class="p-1.5 rounded-xl bg-slate-800 text-slate-400"><i class="ph-bold ph-x"></i></button>
+        </div>
+        <div class="p-4 space-y-3 text-xs text-slate-300 leading-relaxed">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 space-y-1.5">
+            <div class="font-bold text-emerald-400">Android (Chrome)</div>
+            <p>1. Open this file from a private HTTPS link (e.g., Netlify Drop or GitHub Pages) or localhost.</p>
+            <p>2. Tap Chrome's <strong>⋮ menu</strong> → <strong>Add to Home screen</strong> → <strong>Install</strong>.</p>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 space-y-1.5">
+            <div class="font-bold text-cyan-400">iPhone / iPad (Safari)</div>
+            <p>1. Tap the <strong>Share</strong> icon at the bottom of Safari.</p>
+            <p>2. Scroll down and tap <strong>Add to Home Screen</strong>.</p>
+          </div>
+          <p class="text-[11px] text-slate-400">All workout logs, PRs, and body metrics remain 100% private in your device's local storage.</p>
+        </div>
+      `);
+    }
+
+    /**
+     * ============================================================================
+     * INITIALIZATION & STORAGE PERSISTENCE
+     * ============================================================================
+     */
+    function initApp() {
+      try {
+        initPWAFeatures();
+        loadFromStorage();
+        if (state.activeWorkout) {
+          startWorkoutElapsedTicker();
+        }
+        renderCurrentTab();
+        updateHeaderState();
+      } catch (err) {
+        console.error('Initialization error:', err);
+        showToast('Storage error: ' + err.message, 'error');
+      }
+    }
+
+    function loadFromStorage() {
+      const savedSettings = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+      state.settings = savedSettings ? { ...DEFAULT_SETTINGS, ...JSON.parse(savedSettings) } : { ...DEFAULT_SETTINGS };
+
+      const savedExercises = localStorage.getItem(STORAGE_KEYS.EXERCISES);
+      state.exercises = savedExercises ? JSON.parse(savedExercises) : [...DEFAULT_EXERCISES];
+
+      const savedTemplates = localStorage.getItem(STORAGE_KEYS.TEMPLATES);
+      state.templates = savedTemplates ? JSON.parse(savedTemplates) : [...DEFAULT_TEMPLATES];
+
+      const savedActive = localStorage.getItem(STORAGE_KEYS.ACTIVE);
+      state.activeWorkout = savedActive ? JSON.parse(savedActive) : null;
+
+      const savedHistory = localStorage.getItem(STORAGE_KEYS.HISTORY);
+      const savedCond = localStorage.getItem(STORAGE_KEYS.CONDITIONING);
+      const savedBody = localStorage.getItem(STORAGE_KEYS.BODY);
+
+      if (savedHistory !== null) {
+        state.history = JSON.parse(savedHistory);
+        state.conditioningLogs = savedCond ? JSON.parse(savedCond) : [];
+        state.bodyLogs = savedBody ? JSON.parse(savedBody) : [];
+        state.hasSampleData = localStorage.getItem(STORAGE_KEYS.SAMPLE_FLAG) === 'true';
+      } else {
+        // Seed rich sample data so PRs, Smart Progression, VO2 Max, and BMI charts shine immediately
+        const seeded = generateSampleDataset();
+        state.history = seeded.history;
+        state.conditioningLogs = seeded.conditioningLogs;
+        state.bodyLogs = seeded.bodyLogs;
+        state.hasSampleData = true;
+        saveAllData();
+        localStorage.setItem(STORAGE_KEYS.SAMPLE_FLAG, 'true');
+      }
+    }
+
+    function saveAllData() {
+      saveHistory();
+      saveTemplates();
+      saveExercises();
+      saveConditioningLogs();
+      saveBodyLogs();
+      saveSettings();
+    }
+
+    function saveHistory() { localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(state.history)); }
+    function saveTemplates() { localStorage.setItem(STORAGE_KEYS.TEMPLATES, JSON.stringify(state.templates)); }
+    function saveExercises() { localStorage.setItem(STORAGE_KEYS.EXERCISES, JSON.stringify(state.exercises)); }
+    function saveConditioningLogs() { localStorage.setItem(STORAGE_KEYS.CONDITIONING, JSON.stringify(state.conditioningLogs)); }
+    function saveBodyLogs() { localStorage.setItem(STORAGE_KEYS.BODY, JSON.stringify(state.bodyLogs)); }
+    function saveSettings() { localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(state.settings)); }
+    function saveActiveWorkout() {
+      if (state.activeWorkout) {
+        localStorage.setItem(STORAGE_KEYS.ACTIVE, JSON.stringify(state.activeWorkout));
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.ACTIVE);
+      }
+    }
+
+    function generateSampleDataset() {
+      const now = Date.now();
+      const day = 24 * 60 * 60 * 1000;
+
+      const history = [
+        {
+          id: 'smp_w5',
+          name: 'Push Day (Chest, Shoulders, Tris)',
+          date: new Date(now - 2 * day).toISOString(),
+          durationSeconds: 3480,
+          notes: 'Hit top of rep range on bench press—ready to add weight next session!',
+          isSample: true,
+          exercises: [
+            {
+              exerciseId: 'ex_bench_barbell',
+              restSeconds: 150,
+              sets: [
+                { weight: 195, reps: 10, rpe: '8', completed: true },
+                { weight: 195, reps: 10, rpe: '8.5', completed: true },
+                { weight: 195, reps: 10, rpe: '9', completed: true }
+              ]
+            },
+            {
+              exerciseId: 'ex_incline_db',
+              restSeconds: 90,
+              sets: [
+                { weight: 65, reps: 10, rpe: '8', completed: true },
+                { weight: 65, reps: 9, rpe: '8.5', completed: true },
+                { weight: 65, reps: 8, rpe: '9', completed: true }
+              ]
+            },
+            {
+              exerciseId: 'ex_lat_raise',
+              restSeconds: 60,
+              sets: [
+                { weight: 25, reps: 16, rpe: '8', completed: true },
+                { weight: 25, reps: 15, rpe: '9', completed: true }
+              ]
+            }
+          ]
+        },
+        {
+          id: 'smp_w4',
+          name: 'Kettlebell Full-Body Complex',
+          date: new Date(now - 4 * day).toISOString(),
+          durationSeconds: 2520,
+          notes: 'Explosive hip snap on swings.',
+          isSample: true,
+          exercises: [
+            {
+              exerciseId: 'ex_kb_swing',
+              restSeconds: 60,
+              sets: [
+                { weight: 50, reps: 25, rpe: '8', completed: true },
+                { weight: 50, reps: 25, rpe: '8.5', completed: true },
+                { weight: 50, reps: 25, rpe: '9', completed: true }
+              ]
+            },
+            {
+              exerciseId: 'ex_kb_clean_press',
+              restSeconds: 90,
+              sets: [
+                { weight: 45, reps: 8, rpe: '8', completed: true },
+                { weight: 45, reps: 8, rpe: '8.5', completed: true },
+                { weight: 45, reps: 7, rpe: '9', completed: true }
+              ]
+            },
+            {
+              exerciseId: 'ex_kb_goblet_squat',
+              restSeconds: 75,
+              sets: [
+                { weight: 50, reps: 15, rpe: '8', completed: true },
+                { weight: 50, reps: 15, rpe: '8.5', completed: true }
+              ]
+            }
+          ]
+        },
+        {
+          id: 'smp_w3',
+          name: 'Leg Day (Quads, Hams, Glutes)',
+          date: new Date(now - 7 * day).toISOString(),
+          durationSeconds: 3840,
+          notes: 'Strong squats.',
+          isSample: true,
+          exercises: [
+            {
+              exerciseId: 'ex_squat',
+              restSeconds: 180,
+              sets: [
+                { weight: 235, reps: 8, rpe: '8', completed: true },
+                { weight: 245, reps: 7, rpe: '8.5', completed: true },
+                { weight: 255, reps: 6, rpe: '9', completed: true }
+              ]
+            },
+            {
+              exerciseId: 'ex_rdl',
+              restSeconds: 120,
+              sets: [
+                { weight: 195, reps: 10, rpe: '8', completed: true },
+                { weight: 205, reps: 9, rpe: '8.5', completed: true }
+              ]
+            }
+          ]
+        },
+        {
+          id: 'smp_w2',
+          name: 'Push Day (Chest, Shoulders, Tris)',
+          date: new Date(now - 10 * day).toISOString(),
+          durationSeconds: 3300,
+          notes: '',
+          isSample: true,
+          exercises: [
+            {
+              exerciseId: 'ex_bench_barbell',
+              restSeconds: 150,
+              sets: [
+                { weight: 190, reps: 9, rpe: '8', completed: true },
+                { weight: 190, reps: 8, rpe: '8.5', completed: true },
+                { weight: 195, reps: 7, rpe: '9', completed: true }
+              ]
+            }
+          ]
+        },
+        {
+          id: 'smp_w1',
+          name: 'Push Day (Chest, Shoulders, Tris)',
+          date: new Date(now - 15 * day).toISOString(),
+          durationSeconds: 3150,
+          notes: '',
+          isSample: true,
+          exercises: [
+            {
+              exerciseId: 'ex_bench_barbell',
+              restSeconds: 150,
+              sets: [
+                { weight: 185, reps: 8, rpe: '8', completed: true },
+                { weight: 185, reps: 8, rpe: '8.5', completed: true },
+                { weight: 185, reps: 7, rpe: '9', completed: true }
+              ]
+            }
+          ]
+        }
+      ];
+
+      const conditioningLogs = [
+        {
+          id: 'cond_3',
+          title: 'Norwegian 4×4 VO2 Max',
+          date: new Date(now - 1 * day).toISOString(),
+          durationSeconds: 1980,
+          roundsCompleted: 4,
+          estimatedVO2: 49.4,
+          notes: 'Rower + Air Bike, held 172 avg BPM on work intervals.',
+          isSample: true
+        },
+        {
+          id: 'cond_2',
+          title: 'Kettlebell 15-Min EMOM',
+          date: new Date(now - 5 * day).toISOString(),
+          durationSeconds: 900,
+          roundsCompleted: 15,
+          estimatedVO2: 48.1,
+          notes: '20 KB swings (50 lb) on the minute = 300 total swings.',
+          isSample: true
+        },
+        {
+          id: 'cond_1',
+          title: '30/30 Billat Intervals',
+          date: new Date(now - 11 * day).toISOString(),
+          durationSeconds: 1020,
+          roundsCompleted: 12,
+          estimatedVO2: 47.2,
+          notes: 'Outdoor track repeats.',
+          isSample: true
+        }
+      ];
+
+      const bodyLogs = [
+        { id: 'b_4', date: new Date(now - 1 * day).toISOString().slice(0, 10), weight: 182.4, notes: 'Morning fasted', isSample: true },
+        { id: 'b_3', date: new Date(now - 8 * day).toISOString().slice(0, 10), weight: 183.6, notes: 'Post-rest day', isSample: true },
+        { id: 'b_2', date: new Date(now - 15 * day).toISOString().slice(0, 10), weight: 185.0, notes: '', isSample: true },
+        { id: 'b_1', date: new Date(now - 24 * day).toISOString().slice(0, 10), weight: 186.8, notes: 'Starting lean cut', isSample: true }
+      ];
+
+      return { history, conditioningLogs, bodyLogs };
+    }
+
+    /**
+     * ============================================================================
+     * WEB AUDIO API SOUND ENGINE (ZERO EXTERNAL AUDIO FILES)
+     * ============================================================================
+     */
+    function playToneSequence(notes) {
+      if (!state.settings.soundEnabled) return;
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+
+        notes.forEach(({ freq, delay, dur, type = 'sine', gain = 0.25 }) => {
+          const osc = ctx.createOscillator();
+          const g = ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, now + delay);
+
+          g.gain.setValueAtTime(0.001, now + delay);
+          g.gain.exponentialRampToValueAtTime(gain, now + delay + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.001, now + delay + dur);
+
+          osc.connect(g);
+          g.connect(ctx.destination);
+          osc.start(now + delay);
+          osc.stop(now + delay + dur);
+        });
+      } catch (e) {
+        // Ignore browser autoplay block
+      }
+    }
+
+    function playRestCompleteChime() {
+      playToneSequence([
+        { freq: 880, delay: 0, dur: 0.22 },
+        { freq: 1318.5, delay: 0.16, dur: 0.42 }
+      ]);
+    }
+
+    function playCountdownBeep() {
+      playToneSequence([{ freq: 660, delay: 0, dur: 0.12, type: 'triangle', gain: 0.18 }]);
+    }
+
+    function playWorkGoChime() {
+      playToneSequence([
+        { freq: 587.33, delay: 0, dur: 0.12, type: 'sawtooth', gain: 0.2 },
+        { freq: 880, delay: 0.12, dur: 0.14, type: 'sawtooth', gain: 0.22 },
+        { freq: 1174.66, delay: 0.24, dur: 0.35, type: 'sine', gain: 0.28 }
+      ]);
+    }
+
+    function playRecoveryChime() {
+      playToneSequence([
+        { freq: 783.99, delay: 0, dur: 0.2, gain: 0.22 },
+        { freq: 523.25, delay: 0.18, dur: 0.35, gain: 0.22 }
+      ]);
+    }
+
+    function playPRFanfare() {
+      playToneSequence([
+        { freq: 523.25, delay: 0, dur: 0.14, gain: 0.24 },
+        { freq: 659.25, delay: 0.12, dur: 0.14, gain: 0.24 },
+        { freq: 783.99, delay: 0.24, dur: 0.14, gain: 0.24 },
+        { freq: 1046.5, delay: 0.36, dur: 0.45, gain: 0.3 }
+      ]);
+    }
+
+    /**
+     * ============================================================================
+     * SMART PROGRESSION ENGINE & PR ANALYTICS
+     * ============================================================================
+     */
+    function getExerciseById(id) {
+      return state.exercises.find(e => e.id === id) || {
+        id, name: 'Unknown Exercise', muscle: 'Other', secondary: '', equipment: '', targetRepRange: [8, 12], cues: '', alternatives: []
+      };
+    }
+
+    function calculateEpley1RM(weight, reps) {
+      const w = parseFloat(weight) || 0;
+      const r = parseInt(reps, 10) || 0;
+      if (w <= 0 || r <= 0) return 0;
+      if (r === 1) return Math.round(w * 10) / 10;
+      return Math.round(w * (1 + r / 30) * 10) / 10;
+    }
+
+    function getPreviousPerformance(exerciseId) {
+      for (const workout of state.history) {
+        const found = workout.exercises.find(ex => ex.exerciseId === exerciseId);
+        if (found && found.sets && found.sets.length > 0) {
+          const validSets = found.sets.filter(s => s.completed && ((parseFloat(s.weight) || 0) > 0 || (parseInt(s.reps, 10) || 0) > 0));
+          if (validSets.length > 0) {
+            return { date: workout.date, sets: validSets };
+          }
+        }
+      }
+      return null;
+    }
+
+    /**
+     * Analyzes previous session using Double Progression logic and returns an actionable suggestion
+     */
+    function getSmartProgressionSuggestion(exerciseId) {
+      const meta = getExerciseById(exerciseId);
+      const prev = getPreviousPerformance(exerciseId);
+      const unit = state.settings.unit;
+
+      if (!prev || !prev.sets.length) {
+        return {
+          type: 'baseline',
+          badge: 'Baseline Session',
+          text: `Establish clean form for ${meta.targetRepRange ? meta.targetRepRange[0] + '–' + meta.targetRepRange[1] : '8–12'} ${meta.isTimed ? 'sec' : 'reps'} with 2 reps in reserve.`
+        };
+      }
+
+      const [minTarget, maxTarget] = meta.targetRepRange || [8, 12];
+      const topWeight = Math.max(...prev.sets.map(s => parseFloat(s.weight) || 0));
+      const allHitMax = prev.sets.every(s => (parseInt(s.reps, 10) || 0) >= maxTarget);
+      const avgReps = Math.round(prev.sets.reduce((acc, s) => acc + (parseInt(s.reps, 10) || 0), 0) / prev.sets.length);
+
+      if (meta.isTimed) {
+        if (allHitMax) {
+          const inc = unit === 'lbs' ? 10 : 5;
+          return {
+            type: 'increase_weight',
+            badge: 'Ready to Level Up',
+            text: `Hit ${maxTarget}s on all sets last time! Add +${inc} ${unit} or extend hold +10s.`
+          };
+        }
+        return {
+          type: 'increase_reps',
+          badge: 'Time Progression',
+          text: `Last avg: ${avgReps}s @ ${topWeight} ${unit}. Aim for +5–10s per set toward ${maxTarget}s.`
+        };
+      }
+
+      // Kettlebell increment logic (standard KB jumps are larger, e.g., 5-10 lbs / 2-4 kg)
+      const isKB = meta.equipment === 'Kettlebell';
+      const weightStep = isKB
+        ? (unit === 'lbs' ? 5 : 2)
+        : (unit === 'lbs' ? 5 : 2.5);
+
+      if (allHitMax && topWeight > 0) {
+        return {
+          type: 'increase_weight',
+          badge: 'Add Weight ↑',
+          text: `Double Progression: Hit ${maxTarget}+ reps on all sets @ ${topWeight} ${unit} → Bump to ${topWeight + weightStep} ${unit}!`
+        };
+      }
+
+      if (avgReps >= minTarget) {
+        return {
+          type: 'increase_reps',
+          badge: 'Push Reps ↑',
+          text: `Keep ${topWeight} ${unit} and aim for +1–2 reps/set (Goal: ${maxTarget} reps across all sets).`
+        };
+      }
+
+      return {
+        type: 'consolidate',
+        badge: 'Consolidate Load',
+        text: `Last avg ${avgReps} reps @ ${topWeight} ${unit}. Own ${minTarget}–${maxTarget} clean reps before adding weight.`
+      };
+    }
+
+    /**
+     * Computes 3 distinct PRs for an exercise: Heaviest Weight, Max Reps in a Set, and Best Estimated 1RM
+     */
+    function getExercisePRs(exerciseId) {
+      let maxWeight = { val: 0, reps: 0, date: null };
+      let maxReps = { val: 0, weight: 0, date: null };
+      let best1RM = { val: 0, weight: 0, reps: 0, date: null };
+
+      // Iterate oldest to newest so tie-breakers or progression dates are accurate
+      const chronological = [...state.history].reverse();
+      chronological.forEach(w => {
+        const found = w.exercises.find(e => e.exerciseId === exerciseId);
+        if (!found) return;
+        found.sets.forEach(s => {
+          if (!s.completed) return;
+          const wt = parseFloat(s.weight) || 0;
+          const rp = parseInt(s.reps, 10) || 0;
+          const e1rm = calculateEpley1RM(wt, rp);
+
+          if (wt > maxWeight.val || (wt === maxWeight.val && rp > maxWeight.reps)) {
+            maxWeight = { val: wt, reps: rp, date: w.date };
+          }
+          if (rp > maxReps.val || (rp === maxReps.val && wt > maxReps.weight)) {
+            maxReps = { val: rp, weight: wt, date: w.date };
+          }
+          if (e1rm > best1RM.val) {
+            best1RM = { val: e1rm, weight: wt, reps: rp, date: w.date };
+          }
+        });
+      });
+
+      return { maxWeight, maxReps, best1RM };
+    }
+
+    /**
+     * ============================================================================
+     * REST TIMER ENGINE (STRENGTH WORKOUTS)
+     * ============================================================================
+     */
+    function startRestTimer(seconds, exerciseName = 'Rest') {
+      stopRestTimer(false);
+      const duration = Math.max(5, parseInt(seconds, 10) || state.settings.defaultRestSeconds);
+      state.restTimer = {
+        active: true,
+        paused: false,
+        totalSeconds: duration,
+        remainingSeconds: duration,
+        exerciseName,
+        intervalId: setInterval(tickRestTimer, 1000)
+      };
+      updateRestTimerUI();
+    }
+
+    function tickRestTimer() {
+      if (!state.restTimer.active || state.restTimer.paused) return;
+      state.restTimer.remainingSeconds -= 1;
+      if (state.restTimer.remainingSeconds <= 3 && state.restTimer.remainingSeconds > 0) {
+        playCountdownBeep();
+      }
+      if (state.restTimer.remainingSeconds <= 0) {
+        playRestCompleteChime();
+        showToast('Rest complete! Time for your next set.', 'success');
+        stopRestTimer(true);
+      } else {
+        updateRestTimerUI();
+      }
+    }
+
+    function adjustRestTime(delta) {
+      if (!state.restTimer.active) return;
+      state.restTimer.remainingSeconds = Math.max(5, state.restTimer.remainingSeconds + delta);
+      if (state.restTimer.remainingSeconds > state.restTimer.totalSeconds) {
+        state.restTimer.totalSeconds = state.restTimer.remainingSeconds;
+      }
+      updateRestTimerUI();
+    }
+
+    function toggleRestPause() {
+      if (!state.restTimer.active) return;
+      state.restTimer.paused = !state.restTimer.paused;
+      updateRestTimerUI();
+    }
+
+    function stopRestTimer(hideUI = true) {
+      if (state.restTimer.intervalId) clearInterval(state.restTimer.intervalId);
+      state.restTimer.active = false;
+      state.restTimer.paused = false;
+      state.restTimer.intervalId = null;
+      if (hideUI) document.getElementById('rest-timer-bar').classList.add('hidden');
+    }
+
+    function updateRestTimerUI() {
+      const bar = document.getElementById('rest-timer-bar');
+      if (!state.restTimer.active) {
+        bar.classList.add('hidden');
+        return;
+      }
+      bar.classList.remove('hidden');
+      document.getElementById('rest-time-display').textContent = formatSecondsMMSS(state.restTimer.remainingSeconds);
+      document.getElementById('rest-exercise-label').textContent = state.restTimer.exerciseName;
+      const pct = Math.min(100, Math.max(0, (state.restTimer.remainingSeconds / state.restTimer.totalSeconds) * 100));
+      document.getElementById('rest-progress-fill').style.width = `${pct}%`;
+      document.getElementById('rest-pause-icon').className = state.restTimer.paused ? 'ph-bold ph-play text-base' : 'ph-bold ph-pause text-base';
+    }
+
+    /**
+     * ============================================================================
+     * NAVIGATION & GENERAL HELPERS
+     * ============================================================================
+     */
+    function switchTab(tabName) {
+      state.currentTab = tabName;
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        const isTarget = btn.dataset.tab === tabName;
+        btn.className = `nav-btn flex flex-col items-center justify-center gap-1 transition ${
+          isTarget ? 'text-emerald-400 font-semibold' : 'text-slate-400 hover:text-slate-200 font-medium'
+        }`;
+        const icon = btn.querySelector('i');
+        if (icon) {
+          icon.className = icon.className.replace(isTarget ? 'ph-bold' : 'ph-fill', isTarget ? 'ph-fill' : 'ph-bold');
+        }
+      });
+      renderCurrentTab();
+    }
+
+    function updateHeaderState() {
+      const controls = document.getElementById('active-session-header-controls');
+      const subtitle = document.getElementById('header-subtitle');
+      if (state.activeWorkout) {
+        controls.classList.remove('hidden');
+        subtitle.textContent = state.activeWorkout.name;
+        updateElapsedDisplay();
+      } else {
+        controls.classList.add('hidden');
+        subtitle.textContent = 'Strength • VO2 Max • Kettlebell • Body';
+      }
+    }
+
+    function startWorkoutElapsedTicker() {
+      if (state.workoutTimerInterval) clearInterval(state.workoutTimerInterval);
+      state.workoutTimerInterval = setInterval(() => {
+        if (state.activeWorkout) updateElapsedDisplay();
+      }, 1000);
+    }
+
+    function updateElapsedDisplay() {
+      if (!state.activeWorkout) return;
+      const elapsedSec = Math.max(0, Math.floor((Date.now() - state.activeWorkout.startTime) / 1000));
+      const el = document.getElementById('workout-duration-display');
+      if (el) el.textContent = formatSecondsMMSS(elapsedSec);
+    }
+
+    function renderCurrentTab() {
+      const container = document.getElementById('app-content');
+      if (state.currentTab === 'workout') {
+        container.innerHTML = state.activeWorkout ? renderActiveWorkoutView() : renderWorkoutLauncherView();
+      } else if (state.currentTab === 'conditioning') {
+        container.innerHTML = renderConditioningView();
+      } else if (state.currentTab === 'library') {
+        container.innerHTML = renderLibraryView();
+      } else if (state.currentTab === 'progress') {
+        container.innerHTML = renderProgressView();
+        requestAnimationFrame(() => {
+          drawProgressChart();
+          drawWeeklyVolumeChart();
+        });
+      } else if (state.currentTab === 'body') {
+        container.innerHTML = renderBodyAndSettingsView();
+        requestAnimationFrame(() => drawBodyWeightChart());
+      }
+    }
+
+    function formatSecondsMMSS(totalSec) {
+      const secInt = Math.max(0, Math.floor(totalSec));
+      const h = Math.floor(secInt / 3600);
+      const m = Math.floor((secInt % 3600) / 60);
+      const s = secInt % 60;
+      if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function formatDateShort(isoStr) {
+      if (!isoStr) return '—';
+      const d = new Date(isoStr);
+      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function calculateWorkoutVolume(workout) {
+      let total = 0;
+      workout.exercises.forEach(ex => {
+        ex.sets.forEach(s => {
+          if (s.completed) {
+            total += (parseFloat(s.weight) || 0) * (parseInt(s.reps, 10) || 0);
+          }
+        });
+      });
+      return Math.round(total);
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const colors = {
+        success: 'bg-emerald-950/95 border-emerald-500/70 text-emerald-100',
+        pr: 'bg-amber-950/95 border-amber-400 text-amber-100 pr-glow',
+        error: 'bg-rose-950/95 border-rose-500/70 text-rose-100',
+        info: 'bg-slate-900/95 border-cyan-500/50 text-slate-100'
+      };
+      const icon = type === 'pr' ? 'ph-fill ph-trophy text-amber-400' :
+                   type === 'success' ? 'ph-bold ph-check-circle text-emerald-400' :
+                   type === 'error' ? 'ph-bold ph-warning-circle text-rose-400' : 'ph-bold ph-info text-cyan-400';
+
+      toast.className = `flex items-center gap-2.5 px-4 py-3 rounded-2xl border shadow-2xl backdrop-blur-md text-xs font-semibold transition-all duration-300 ${colors[type] || colors.info}`;
+      toast.innerHTML = `<i class="${icon} text-lg shrink-0"></i><span>${message}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-8px)';
+        setTimeout(() => toast.remove(), 300);
+      }, type === 'pr' ? 4000 : 2800);
+    }
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    /**
+     * ============================================================================
+     * TAB 1: WORKOUT LAUNCHER & ACTIVE LOGGER WITH SMART PROGRESSION
+     * ============================================================================
+     */
+    function renderWorkoutLauncherView() {
+      const categories = ['All', 'PPL', 'Upper/Lower', 'Firefighter', 'Kettlebell', 'Custom'];
+      const filteredTemplates = state.templates.filter(t =>
+        state.templateCategoryFilter === 'All' || t.category === state.templateCategoryFilter
+      );
+
+      return `
+        <div class="space-y-5">
+          <!-- Hero Quick Start Card -->
+          <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-800 via-slate-900 to-[#0f172a] border border-slate-700/80 p-5 shadow-xl">
+            <div class="absolute -right-10 -top-10 w-40 h-40 bg-emerald-500/15 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="relative z-10">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">Smart Progression Ready</span>
+                <span class="text-xs text-slate-400 font-mono">${state.history.length} sessions logged</span>
+              </div>
+              <h2 class="text-xl font-extrabold text-white mb-1">Start Training Session</h2>
+              <p class="text-xs text-slate-400 mb-4">Auto-calculates progressive overload targets, tracks rest timers, and detects live PRs.</p>
+
+              <button onclick="startEmptyWorkout()" class="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-extrabold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-[0.99] transition">
+                <i class="ph-bold ph-plus-circle text-lg"></i>
+                Start Empty Workout
+              </button>
+            </div>
+          </div>
+
+          ${state.hasSampleData ? `
+            <div class="flex items-center justify-between gap-3 bg-cyan-950/40 border border-cyan-500/30 rounded-2xl px-4 py-3">
+              <div class="flex items-center gap-2.5">
+                <i class="ph-bold ph-sparkle text-cyan-400 text-lg shrink-0"></i>
+                <p class="text-xs text-cyan-100">Sample workout, VO2 max & weight data loaded for preview.</p>
+              </div>
+              <button onclick="clearSampleData()" class="shrink-0 text-xs font-bold text-cyan-300 hover:text-white underline">
+                Clear Sample
+              </button>
+            </div>
+          ` : ''}
+
+          <!-- Training Splits & Templates -->
+          <div>
+            <div class="flex items-center justify-between mb-2.5">
+              <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300">Training Splits & Routines</h3>
+              <button onclick="openCreateTemplateModal()" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 py-1 px-2 rounded-lg hover:bg-slate-800/70 transition">
+                <i class="ph-bold ph-plus"></i> Custom Split
+              </button>
+            </div>
+
+            <!-- Split Category Filter Pills -->
+            <div class="flex gap-1.5 overflow-x-auto no-scrollbar pb-3">
+              ${categories.map(cat => `
+                <button onclick="setTemplateCategory('${cat}')" class="shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
+                  state.templateCategoryFilter === cat
+                    ? 'bg-emerald-500 text-slate-950 font-bold'
+                    : 'bg-slate-800/90 text-slate-300 hover:bg-slate-700 border border-slate-700/60'
+                }">
+                  ${cat === 'Kettlebell' ? '🏠 Kettlebell' : cat === 'Firefighter' ? '🚒 Firefighter' : cat}
+                </button>
+              `).join('')}
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              ${filteredTemplates.map(tpl => {
+                const exNames = tpl.exercises.map(e => getExerciseById(e.exerciseId).name).join(' • ');
+                const badgeColor = tpl.category === 'Firefighter' ? 'text-amber-400 border-amber-500/30 bg-amber-950/30' :
+                                   tpl.category === 'Kettlebell' ? 'text-purple-400 border-purple-500/30 bg-purple-950/30' :
+                                   'text-cyan-400 border-slate-700 bg-slate-800';
+                return `
+                  <div class="bg-[#111827] border border-slate-800 hover:border-slate-700 rounded-2xl p-4 flex flex-col justify-between transition">
+                    <div>
+                      <div class="flex items-start justify-between gap-2 mb-1.5">
+                        <span class="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md border ${badgeColor}">
+                          ${tpl.category || 'Custom'}
+                        </span>
+                        <button onclick="deleteTemplate('${tpl.id}')" class="text-slate-500 hover:text-rose-400 p-1 rounded-lg transition" title="Delete Template">
+                          <i class="ph-bold ph-trash text-sm"></i>
+                        </button>
+                      </div>
+                      <h4 class="font-bold text-base text-white mb-1">${escapeHtml(tpl.name)}</h4>
+                      <p class="text-xs text-slate-400 line-clamp-2 mb-4">${escapeHtml(exNames)}</p>
+                    </div>
+                    <button onclick="startWorkoutFromTemplate('${tpl.id}')" class="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-emerald-500/20 text-emerald-400 border border-slate-700 hover:border-emerald-500/40 font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition">
+                      <i class="ph-bold ph-play"></i> Launch Workout
+                    </button>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function setTemplateCategory(cat) {
+      state.templateCategoryFilter = cat;
+      renderCurrentTab();
+    }
+
+    function startEmptyWorkout() {
+      state.activeWorkout = {
+        id: 'w_' + Date.now(),
+        name: 'Custom Workout',
+        startTime: Date.now(),
+        notes: '',
+        exercises: []
+      };
+      saveActiveWorkout();
+      updateHeaderState();
+      startWorkoutElapsedTicker();
+      renderCurrentTab();
+      openExercisePickerModal();
+    }
+
+    function startWorkoutFromTemplate(templateId) {
+      const tpl = state.templates.find(t => t.id === templateId);
+      if (!tpl) return;
+
+      const exercises = tpl.exercises.map(item => {
+        const prev = getPreviousPerformance(item.exerciseId);
+        const count = item.defaultSets || 3;
+        const sets = [];
+        for (let i = 0; i < count; i++) {
+          const prevSet = prev && prev.sets[i] ? prev.sets[i] : (prev && prev.sets[prev.sets.length - 1] ? prev.sets[prev.sets.length - 1] : null);
+          sets.push({
+            weight: prevSet ? prevSet.weight : '',
+            reps: prevSet ? prevSet.reps : '',
+            rpe: '',
+            completed: false,
+            isPR: false
+          });
+        }
+        return {
+          uid: 'exu_' + Math.random().toString(36).slice(2, 9),
+          exerciseId: item.exerciseId,
+          restSeconds: item.restSeconds || state.settings.defaultRestSeconds,
+          sets
+        };
+      });
+
+      state.activeWorkout = {
+        id: 'w_' + Date.now(),
+        name: tpl.name,
+        startTime: Date.now(),
+        notes: '',
+        exercises
+      };
+      saveActiveWorkout();
+      updateHeaderState();
+      startWorkoutElapsedTicker();
+      renderCurrentTab();
+      showToast(`Started "${tpl.name}"`, 'success');
+    }
+
+    function renderActiveWorkoutView() {
+      const w = state.activeWorkout;
+      const unit = state.settings.unit;
+
+      let completedSetsCount = 0;
+      let totalSetsCount = 0;
+      let liveVolume = 0;
+
+      w.exercises.forEach(ex => {
+        ex.sets.forEach(s => {
+          totalSetsCount++;
+          if (s.completed) {
+            completedSetsCount++;
+            liveVolume += (parseFloat(s.weight) || 0) * (parseInt(s.reps, 10) || 0);
+          }
+        });
+      });
+
+      return `
+        <div class="space-y-4">
+          <!-- Session Title & Live Telemetry -->
+          <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4">
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <input
+                type="text"
+                value="${escapeHtml(w.name)}"
+                onchange="updateWorkoutName(this.value)"
+                class="bg-transparent font-extrabold text-lg text-white focus:outline-none focus:border-b focus:border-emerald-500 w-full"
+                placeholder="Workout Name"
+              />
+              <button onclick="openRestPresetModal()" class="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-400 text-xs font-semibold border border-slate-700 transition">
+                <i class="ph-bold ph-timer"></i> Timer
+              </button>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800/80 text-center">
+              <div class="bg-slate-900/80 rounded-xl py-2 px-1">
+                <div class="text-[10px] uppercase tracking-wider text-slate-400">Volume</div>
+                <div class="font-mono font-bold text-sm text-emerald-400">${Math.round(liveVolume).toLocaleString()} <span class="text-[10px]">${unit}</span></div>
+              </div>
+              <div class="bg-slate-900/80 rounded-xl py-2 px-1">
+                <div class="text-[10px] uppercase tracking-wider text-slate-400">Sets Done</div>
+                <div class="font-mono font-bold text-sm text-white">${completedSetsCount} / ${totalSetsCount}</div>
+              </div>
+              <div class="bg-slate-900/80 rounded-xl py-2 px-1">
+                <div class="text-[10px] uppercase tracking-wider text-slate-400">Auto-Rest</div>
+                <button onclick="toggleAutoRestQuick()" class="font-mono font-bold text-xs ${state.settings.autoStartRest ? 'text-cyan-400' : 'text-slate-500'}">
+                  ${state.settings.autoStartRest ? 'ON' : 'OFF'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Exercise Cards -->
+          ${w.exercises.length === 0 ? `
+            <div class="bg-[#111827]/60 border border-dashed border-slate-700 rounded-3xl p-8 text-center">
+              <i class="ph-bold ph-barbell text-3xl text-slate-500 mb-2"></i>
+              <p class="text-sm font-semibold text-slate-300 mb-1">No exercises in this session yet</p>
+              <p class="text-xs text-slate-400">Add strength movements, kettlebell exercises, or firefighter conditioning work below.</p>
+            </div>
+          ` : w.exercises.map(exItem => {
+            const exMeta = getExerciseById(exItem.exerciseId);
+            const prevPerf = getPreviousPerformance(exItem.exerciseId);
+            const prog = getSmartProgressionSuggestion(exItem.exerciseId);
+            const isKB = exMeta.equipment === 'Kettlebell';
+
+            const progStyle = prog.type === 'increase_weight'
+              ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-200'
+              : prog.type === 'increase_reps'
+              ? 'bg-cyan-950/60 border-cyan-500/40 text-cyan-200'
+              : 'bg-slate-900/90 border-slate-700/80 text-slate-300';
+
+            return `
+              <div class="bg-[#111827] border border-slate-800 rounded-2xl overflow-hidden shadow-md">
+                <!-- Exercise Header -->
+                <div class="p-3.5 bg-slate-800/40 border-b border-slate-800">
+                  <div class="flex items-start justify-between gap-2">
+                    <div>
+                      <div class="flex flex-wrap items-center gap-1.5">
+                        <h3 class="font-bold text-sm sm:text-base text-emerald-400">${escapeHtml(exMeta.name)}</h3>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">${exMeta.equipment}</span>
+                      </div>
+                      <div class="flex flex-wrap items-center gap-2 mt-1.5">
+                        <button onclick="cycleExerciseRest('${exItem.uid}')" class="inline-flex items-center gap-1 text-[11px] font-mono text-cyan-400 hover:text-cyan-300 bg-cyan-950/40 border border-cyan-500/25 px-2 py-0.5 rounded-md transition">
+                          <i class="ph-bold ph-timer"></i> Rest: ${formatSecondsMMSS(exItem.restSeconds)}
+                        </button>
+                        ${isKB ? `
+                          <button onclick="openKBPresetModal('${exItem.uid}')" class="inline-flex items-center gap-1 text-[11px] font-mono text-purple-300 bg-purple-950/50 border border-purple-500/30 px-2 py-0.5 rounded-md transition">
+                            <i class="ph-bold ph-kettlebell"></i> KB Weights
+                          </button>
+                        ` : ''}
+                        ${exMeta.alternatives && exMeta.alternatives.length ? `
+                          <button onclick="openSwapExerciseModal('${exItem.uid}')" class="inline-flex items-center gap-1 text-[11px] text-slate-300 hover:text-white bg-slate-800 border border-slate-700 px-2 py-0.5 rounded-md transition">
+                            <i class="ph-bold ph-arrows-left-right"></i> Swap
+                          </button>
+                        ` : ''}
+                      </div>
+                    </div>
+                    <button onclick="removeExerciseFromWorkout('${exItem.uid}')" class="p-2 text-slate-500 hover:text-rose-400 rounded-xl hover:bg-slate-800 transition">
+                      <i class="ph-bold ph-trash text-base"></i>
+                    </button>
+                  </div>
+
+                  <!-- Smart Progression Banner -->
+                  <div class="mt-2.5 px-3 py-2 rounded-xl border text-[11px] flex items-start gap-2 ${progStyle}">
+                    <i class="ph-bold ph-trend-up text-sm shrink-0 mt-0.5 text-emerald-400"></i>
+                    <div>
+                      <span class="font-bold uppercase tracking-wider text-[10px] mr-1.5">[${prog.badge}]</span>
+                      <span>${escapeHtml(prog.text)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Set Columns Header -->
+                <div class="grid grid-cols-12 gap-1.5 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-800/60 text-center">
+                  <div class="col-span-1">Set</div>
+                  <div class="col-span-3">Previous</div>
+                  <div class="col-span-3">${unit}</div>
+                  <div class="col-span-2">${exMeta.isTimed ? 'Sec' : 'Reps'}</div>
+                  <div class="col-span-2">RPE</div>
+                  <div class="col-span-1">✓</div>
+                </div>
+
+                <!-- Sets List -->
+                <div class="divide-y divide-slate-800/50">
+                  ${exItem.sets.map((set, setIdx) => {
+                    const prevSet = prevPerf && prevPerf.sets[setIdx] ? prevPerf.sets[setIdx] : null;
+                    const prevText = prevSet ? `${prevSet.weight}×${prevSet.reps}${exMeta.isTimed ? 's' : ''}` : '—';
+                    const rowBg = set.completed ? (set.isPR ? 'bg-amber-950/30' : 'bg-emerald-950/25') : '';
+
+                    return `
+                      <div class="grid grid-cols-12 gap-1.5 px-3 py-2 items-center transition ${rowBg}">
+                        <div class="col-span-1 text-center">
+                          <button onclick="removeSet('${exItem.uid}', ${setIdx})" class="w-6 h-6 rounded-lg font-mono text-xs font-bold ${set.completed ? 'text-emerald-400' : 'text-slate-300'} hover:bg-rose-500/20 hover:text-rose-400 transition" title="Remove set">
+                            ${set.isPR ? '🏆' : setIdx + 1}
+                          </button>
+                        </div>
+
+                        <div class="col-span-3 text-center">
+                          <button
+                            onclick="autofillFromPrevious('${exItem.uid}', ${setIdx}, '${prevSet ? prevSet.weight : ''}', '${prevSet ? prevSet.reps : ''}')"
+                            class="text-[11px] font-mono text-slate-400 hover:text-cyan-300 truncate max-w-full px-1 py-1 rounded hover:bg-slate-800 transition"
+                            title="Tap to copy previous set"
+                          >
+                            ${prevText}
+                          </button>
+                        </div>
+
+                        <div class="col-span-3">
+                          <input
+                            type="number"
+                            inputmode="decimal"
+                            step="any"
+                            placeholder="${prevSet ? prevSet.weight : '0'}"
+                            value="${set.weight}"
+                            onchange="updateSetField('${exItem.uid}', ${setIdx}, 'weight', this.value)"
+                            class="w-full bg-slate-900 border ${set.completed ? 'border-emerald-500/40 text-emerald-200' : 'border-slate-700 text-white'} rounded-xl py-1.5 px-1 text-center font-mono text-sm font-bold focus:outline-none focus:border-emerald-500"
+                          />
+                        </div>
+
+                        <div class="col-span-2">
+                          <input
+                            type="number"
+                            inputmode="numeric"
+                            placeholder="${prevSet ? prevSet.reps : '0'}"
+                            value="${set.reps}"
+                            onchange="updateSetField('${exItem.uid}', ${setIdx}, 'reps', this.value)"
+                            class="w-full bg-slate-900 border ${set.completed ? 'border-emerald-500/40 text-emerald-200' : 'border-slate-700 text-white'} rounded-xl py-1.5 px-1 text-center font-mono text-sm font-bold focus:outline-none focus:border-emerald-500"
+                          />
+                        </div>
+
+                        <div class="col-span-2">
+                          <input
+                            type="text"
+                            placeholder="8.5"
+                            value="${escapeHtml(set.rpe || '')}"
+                            onchange="updateSetField('${exItem.uid}', ${setIdx}, 'rpe', this.value)"
+                            class="w-full bg-slate-900/70 border border-slate-800 text-slate-300 rounded-xl py-1.5 px-1 text-center text-xs focus:outline-none focus:border-cyan-500"
+                          />
+                        </div>
+
+                        <div class="col-span-1 flex justify-center">
+                          <button
+                            onclick="toggleSetComplete('${exItem.uid}', ${setIdx})"
+                            class="w-8 h-8 rounded-xl flex items-center justify-center transition active:scale-90 ${
+                              set.completed
+                                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/30'
+                                : 'bg-slate-800 text-slate-400 hover:bg-slate-700 border border-slate-700'
+                            }"
+                          >
+                            <i class="ph-bold ph-check text-sm"></i>
+                          </button>
+                        </div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+
+                <!-- Add Set Footer -->
+                <div class="p-2.5 bg-slate-900/40 border-t border-slate-800/60">
+                  <button onclick="addSetToExercise('${exItem.uid}')" class="w-full py-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                    <i class="ph-bold ph-plus"></i> Add Set
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+
+          <!-- Bottom Actions -->
+          <div class="space-y-2.5 pt-1">
+            <button onclick="openExercisePickerModal()" class="w-full py-3.5 px-4 rounded-2xl bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-cyan-500/30 font-bold text-sm flex items-center justify-center gap-2 transition active:scale-[0.99]">
+              <i class="ph-bold ph-plus-circle text-lg"></i>
+              Add Exercise
+            </button>
+
+            <button onclick="openDiscardWorkoutModal()" class="w-full py-2.5 px-4 rounded-xl text-rose-400/80 hover:text-rose-400 hover:bg-rose-950/30 text-xs font-semibold transition">
+              Cancel & Discard Workout
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function updateWorkoutName(val) {
+      if (!state.activeWorkout) return;
+      state.activeWorkout.name = val.trim() || 'Workout';
+      saveActiveWorkout();
+      updateHeaderState();
+    }
+
+    function toggleAutoRestQuick() {
+      state.settings.autoStartRest = !state.settings.autoStartRest;
+      saveSettings();
+      renderCurrentTab();
+      showToast(`Auto-rest timer ${state.settings.autoStartRest ? 'ON' : 'OFF'}`);
+    }
+
+    function addExerciseToActiveWorkout(exerciseId) {
+      if (!state.activeWorkout) {
+        state.activeWorkout = {
+          id: 'w_' + Date.now(),
+          name: 'Custom Workout',
+          startTime: Date.now(),
+          notes: '',
+          exercises: []
+        };
+        startWorkoutElapsedTicker();
+      }
+
+      const prev = getPreviousPerformance(exerciseId);
+      const firstPrev = prev && prev.sets[0] ? prev.sets[0] : null;
+
+      state.activeWorkout.exercises.push({
+        uid: 'exu_' + Math.random().toString(36).slice(2, 9),
+        exerciseId,
+        restSeconds: state.settings.defaultRestSeconds,
+        sets: [
+          {
+            weight: firstPrev ? firstPrev.weight : '',
+            reps: firstPrev ? firstPrev.reps : '',
+            rpe: '',
+            completed: false,
+            isPR: false
+          }
+        ]
+      });
+      saveActiveWorkout();
+      updateHeaderState();
+      closeModal();
+      switchTab('workout');
+      showToast(`Added ${getExerciseById(exerciseId).name}`, 'success');
+    }
+
+    function swapExerciseInActiveWorkout(uid, newExerciseId) {
+      const exItem = state.activeWorkout?.exercises.find(e => e.uid === uid);
+      if (!exItem) return;
+      exItem.exerciseId = newExerciseId;
+      exItem.sets.forEach(s => { s.isPR = false; });
+      saveActiveWorkout();
+      closeModal();
+      renderCurrentTab();
+      showToast(`Swapped to ${getExerciseById(newExerciseId).name}`, 'info');
+    }
+
+    function applyKBWeightToExercise(uid, weightVal) {
+      const exItem = state.activeWorkout?.exercises.find(e => e.uid === uid);
+      if (!exItem) return;
+      exItem.sets.forEach(s => {
+        if (!s.completed) s.weight = weightVal;
+      });
+      saveActiveWorkout();
+      closeModal();
+      renderCurrentTab();
+      showToast(`Set kettlebell load to ${weightVal} ${state.settings.unit}`);
+    }
+
+    function removeExerciseFromWorkout(uid) {
+      if (!state.activeWorkout) return;
+      state.activeWorkout.exercises = state.activeWorkout.exercises.filter(e => e.uid !== uid);
+      saveActiveWorkout();
+      renderCurrentTab();
+    }
+
+    function addSetToExercise(uid) {
+      const ex = state.activeWorkout?.exercises.find(e => e.uid === uid);
+      if (!ex) return;
+      const lastSet = ex.sets[ex.sets.length - 1];
+      const prev = getPreviousPerformance(ex.exerciseId);
+      const prevMatch = prev && prev.sets[ex.sets.length] ? prev.sets[ex.sets.length] : null;
+
+      ex.sets.push({
+        weight: prevMatch ? prevMatch.weight : (lastSet ? lastSet.weight : ''),
+        reps: prevMatch ? prevMatch.reps : (lastSet ? lastSet.reps : ''),
+        rpe: '',
+        completed: false,
+        isPR: false
+      });
+      saveActiveWorkout();
+      renderCurrentTab();
+    }
+
+    function removeSet(uid, setIdx) {
+      const ex = state.activeWorkout?.exercises.find(e => e.uid === uid);
+      if (!ex || ex.sets.length <= 1) {
+        showToast('Keep at least 1 set.', 'info');
+        return;
+      }
+      ex.sets.splice(setIdx, 1);
+      saveActiveWorkout();
+      renderCurrentTab();
+    }
+
+    function updateSetField(uid, setIdx, field, value) {
+      const ex = state.activeWorkout?.exercises.find(e => e.uid === uid);
+      if (!ex || !ex.sets[setIdx]) return;
+      ex.sets[setIdx][field] = value;
+      saveActiveWorkout();
+    }
+
+    function autofillFromPrevious(uid, setIdx, weight, reps) {
+      if (!weight && !reps) return;
+      const ex = state.activeWorkout?.exercises.find(e => e.uid === uid);
+      if (!ex || !ex.sets[setIdx]) return;
+      ex.sets[setIdx].weight = weight;
+      ex.sets[setIdx].reps = reps;
+      saveActiveWorkout();
+      renderCurrentTab();
+      showToast('Copied previous set values');
+    }
+
+    function toggleSetComplete(uid, setIdx) {
+      const ex = state.activeWorkout?.exercises.find(e => e.uid === uid);
+      if (!ex || !ex.sets[setIdx]) return;
+      const set = ex.sets[setIdx];
+
+      if (!set.completed) {
+        const prev = getPreviousPerformance(ex.exerciseId);
+        const prevSet = prev && prev.sets[setIdx] ? prev.sets[setIdx] : null;
+        if (set.weight === '' && prevSet) set.weight = prevSet.weight;
+        if (set.reps === '' && prevSet) set.reps = prevSet.reps;
+      }
+
+      set.completed = !set.completed;
+
+      // Live PR Detection when checking off a set!
+      if (set.completed) {
+        const wt = parseFloat(set.weight) || 0;
+        const rp = parseInt(set.reps, 10) || 0;
+        const e1rm = calculateEpley1RM(wt, rp);
+        const historicPRs = getExercisePRs(ex.exerciseId);
+
+        const beatWeight = wt > 0 && historicPRs.maxWeight.val > 0 && wt > historicPRs.maxWeight.val;
+        const beat1RM = e1rm > 0 && historicPRs.best1RM.val > 0 && e1rm > historicPRs.best1RM.val;
+        const beatReps = rp > 0 && historicPRs.maxReps.val > 0 && rp > historicPRs.maxReps.val;
+
+        if (beatWeight || beat1RM || beatReps) {
+          set.isPR = true;
+          const exMeta = getExerciseById(ex.exerciseId);
+          const prReason = beatWeight ? `Heaviest Weight (${wt} ${state.settings.unit})` :
+                           beat1RM ? `Est. 1RM (${e1rm} ${state.settings.unit})` :
+                           `Max Reps (${rp})`;
+          playPRFanfare();
+          showToast(`NEW PR on ${exMeta.name}: ${prReason}!`, 'pr');
+        } else {
+          set.isPR = false;
+        }
+      } else {
+        set.isPR = false;
+      }
+
+      saveActiveWorkout();
+      renderCurrentTab();
+
+      if (set.completed && state.settings.autoStartRest) {
+        const exMeta = getExerciseById(ex.exerciseId);
+        startRestTimer(ex.restSeconds || state.settings.defaultRestSeconds, exMeta.name);
+      }
+    }
+
+    function cycleExerciseRest(uid) {
+      const ex = state.activeWorkout?.exercises.find(e => e.uid === uid);
+      if (!ex) return;
+      const presets = [45, 60, 75, 90, 120, 150, 180];
+      const idx = presets.indexOf(ex.restSeconds);
+      ex.restSeconds = presets[(idx + 1) % presets.length];
+      saveActiveWorkout();
+      renderCurrentTab();
+    }
+
+    function finishActiveWorkout(notes = '') {
+      if (!state.activeWorkout) return;
+      const durationSeconds = Math.max(60, Math.floor((Date.now() - state.activeWorkout.startTime) / 1000));
+
+      const cleanedExercises = state.activeWorkout.exercises
+        .map(ex => ({
+          exerciseId: ex.exerciseId,
+          restSeconds: ex.restSeconds,
+          sets: ex.sets.filter(s => s.completed)
+        }))
+        .filter(ex => ex.sets.length > 0);
+
+      if (cleanedExercises.length === 0) {
+        showToast('Check off at least one set before finishing!', 'error');
+        return;
+      }
+
+      const completedRecord = {
+        id: state.activeWorkout.id,
+        name: state.activeWorkout.name,
+        date: new Date().toISOString(),
+        durationSeconds,
+        notes: notes.trim(),
+        exercises: cleanedExercises
+      };
+
+      state.history.unshift(completedRecord);
+      saveHistory();
+
+      state.activeWorkout = null;
+      saveActiveWorkout();
+      stopRestTimer(true);
+      if (state.workoutTimerInterval) clearInterval(state.workoutTimerInterval);
+
+      closeModal();
+      updateHeaderState();
+      switchTab('progress');
+      showToast('Workout saved & PR analytics updated!', 'success');
+    }
+
+    function discardActiveWorkout() {
+      state.activeWorkout = null;
+      saveActiveWorkout();
+      stopRestTimer(true);
+      if (state.workoutTimerInterval) clearInterval(state.workoutTimerInterval);
+      closeModal();
+      updateHeaderState();
+      renderCurrentTab();
+      showToast('Workout discarded.');
+    }
+
+    /**
+     * ============================================================================
+     * TAB 2: VO2 MAX TRAINER & KETTLEBELL CONDITIONING
+     * ============================================================================
+     */
+    function renderConditioningView() {
+      const ct = state.condTimer;
+      const maxHR = 220 - (parseInt(state.settings.age, 10) || 32);
+      const restHR = parseInt(state.settings.restingHR, 10) || 60;
+      const hrr = maxHR - restHR;
+      // Karvonen HR Reserve Zones
+      const zone2Low = Math.round(restHR + hrr * 0.60);
+      const zone2High = Math.round(restHR + hrr * 0.70);
+      const vo2Low = Math.round(restHR + hrr * 0.85);
+      const vo2High = Math.round(restHR + hrr * 0.95);
+
+      // Weekly conditioning minutes
+      const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      const weeklyMins = Math.round(
+        state.conditioningLogs
+          .filter(c => new Date(c.date).getTime() >= weekAgo)
+          .reduce((sum, c) => sum + (c.durationSeconds || 0), 0) / 60
+      );
+      const latestVO2 = state.conditioningLogs.find(c => c.estimatedVO2)?.estimatedVO2 || '—';
+
+      const phaseBadgeColors = {
+        READY: 'bg-slate-800 text-slate-300 border-slate-700',
+        WARMUP: 'bg-amber-950/70 text-amber-300 border-amber-500/40',
+        WORK: 'bg-emerald-950/80 text-emerald-300 border-emerald-500/50',
+        REST: 'bg-cyan-950/80 text-cyan-300 border-cyan-500/50',
+        COOLDOWN: 'bg-purple-950/70 text-purple-300 border-purple-500/40',
+        DONE: 'bg-emerald-500 text-slate-950 border-emerald-400'
+      };
+
+      const ringColor = ct.phase === 'WORK' ? '#10b981' :
+                        ct.phase === 'REST' ? '#06b6d4' :
+                        ct.phase === 'WARMUP' ? '#f59e0b' : '#8b5cf6';
+
+      const progressPct = ct.phaseTotalSec > 0 ? Math.min(100, Math.max(0, (ct.phaseRemainingSec / ct.phaseTotalSec) * 100)) : 100;
+      const radius = 78;
+      const circumference = 2 * Math.PI * radius;
+      const dashOffset = circumference - (progressPct / 100) * circumference;
+
+      return `
+        <div class="space-y-5">
+          <!-- Weekly Conditioning & VO2 Max Summary -->
+          <div class="grid grid-cols-3 gap-2.5">
+            <div class="bg-[#111827] border border-slate-800 rounded-2xl p-3 text-center">
+              <div class="text-[10px] uppercase tracking-wider text-slate-400">7-Day Cardio</div>
+              <div class="font-mono text-lg font-extrabold text-emerald-400 mt-0.5">${weeklyMins} <span class="text-xs font-normal">min</span></div>
+            </div>
+            <div class="bg-[#111827] border border-slate-800 rounded-2xl p-3 text-center">
+              <div class="text-[10px] uppercase tracking-wider text-slate-400">Est. VO2 Max</div>
+              <div class="font-mono text-lg font-extrabold text-cyan-400 mt-0.5">${latestVO2}</div>
+            </div>
+            <div class="bg-[#111827] border border-slate-800 rounded-2xl p-3 text-center">
+              <div class="text-[10px] uppercase tracking-wider text-slate-400">VO2 HR Target</div>
+              <div class="font-mono text-sm font-extrabold text-rose-400 mt-1">${vo2Low}–${vo2High}</div>
+            </div>
+          </div>
+
+          <!-- Interactive Interval / VO2 Max / EMOM Timer Card -->
+          <div class="bg-gradient-to-b from-[#111827] to-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl">
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <div>
+                <span class="px-2.5 py-0.5 rounded-lg border text-[10px] font-mono font-bold uppercase tracking-wider ${phaseBadgeColors[ct.phase] || phaseBadgeColors.READY}">
+                  ${ct.phase}
+                </span>
+                <h2 class="font-extrabold text-base text-white mt-1.5">${escapeHtml(ct.protocolTitle)}</h2>
+              </div>
+              <div class="text-right font-mono">
+                <div class="text-xs text-slate-400">Round</div>
+                <div class="text-base font-extrabold text-white">${ct.currentRound} / ${ct.totalRounds}</div>
+              </div>
+            </div>
+
+            <!-- SVG Circular Phase Timer -->
+            <div class="relative flex items-center justify-center my-4">
+              <svg class="w-48 h-48 -rotate-90" viewBox="0 0 180 180">
+                <circle cx="90" cy="90" r="${radius}" stroke="#1e293b" stroke-width="10" fill="none" />
+                <circle
+                  cx="90" cy="90" r="${radius}"
+                  stroke="${ringColor}"
+                  stroke-width="10"
+                  stroke-linecap="round"
+                  fill="none"
+                  stroke-dasharray="${circumference}"
+                  stroke-dashoffset="${dashOffset}"
+                  style="transition: stroke-dashoffset 0.35s linear, stroke 0.3s ease;"
+                />
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <span class="font-mono text-4xl font-extrabold text-white tracking-tight">${formatSecondsMMSS(ct.phaseRemainingSec)}</span>
+                <span class="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mt-1">
+                  ${ct.phase === 'WORK' ? 'MAX EFFORT' : ct.phase === 'REST' ? 'ACTIVE RECOVERY' : ct.phase}
+                </span>
+              </div>
+            </div>
+
+            <!-- Kettlebell / Interval Rep Tally Counter -->
+            <div class="flex items-center justify-between bg-slate-950/70 border border-slate-800 rounded-2xl px-4 py-2.5 mb-4">
+              <div class="flex items-center gap-2">
+                <i class="ph-bold ph-kettlebell text-purple-400 text-lg"></i>
+                <span class="text-xs font-semibold text-slate-300">Round / KB Rep Tally</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="adjustCondReps(-5)" class="w-7 h-7 rounded-lg bg-slate-800 text-slate-300 font-mono text-xs font-bold">-5</button>
+                <span class="font-mono text-base font-extrabold text-white min-w-[36px] text-center">${ct.repCounter}</span>
+                <button onclick="adjustCondReps(5)" class="w-7 h-7 rounded-lg bg-slate-800 text-emerald-400 font-mono text-xs font-bold">+5</button>
+                <button onclick="adjustCondReps(1)" class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-300 font-mono text-xs font-bold">+1</button>
+              </div>
+            </div>
+
+            <!-- Timer Transport Buttons -->
+            <div class="grid grid-cols-3 gap-2.5">
+              ${!ct.active ? `
+                <button onclick="startConditioningTimer()" class="col-span-2 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950 font-extrabold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95 transition">
+                  <i class="ph-bold ph-play text-lg"></i> Start Interval
+                </button>
+              ` : `
+                <button onclick="toggleConditioningPause()" class="col-span-2 py-3.5 rounded-2xl ${ct.paused ? 'bg-emerald-500 text-slate-950' : 'bg-amber-500 text-slate-950'} font-extrabold text-sm flex items-center justify-center gap-2 active:scale-95 transition">
+                  <i class="ph-bold ${ct.paused ? 'ph-play' : 'ph-pause'} text-lg"></i> ${ct.paused ? 'Resume' : 'Pause'}
+                </button>
+              `}
+              <button onclick="resetConditioningTimer()" class="py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                <i class="ph-bold ph-arrow-counter-clockwise"></i> Reset
+              </button>
+            </div>
+
+            ${ct.elapsedTotalSec >= 30 ? `
+              <button onclick="logCompletedConditioningSession()" class="w-full mt-2.5 py-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                <i class="ph-bold ph-check-circle"></i> Save Session (${formatSecondsMMSS(ct.elapsedTotalSec)})
+              </button>
+            ` : ''}
+          </div>
+
+          <!-- Heart Rate Zones & VO2 Max Estimator Bar -->
+          <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div class="text-xs font-bold text-white flex items-center gap-1.5">
+                <i class="ph-fill ph-heart text-rose-500"></i> Your Training HR Zones (Age ${state.settings.age})
+              </div>
+              <div class="text-[11px] text-slate-400 mt-1">
+                Zone 2 Base: <strong class="text-cyan-400 font-mono">${zone2Low}–${zone2High} bpm</strong> •
+                VO2 Max (85–95%): <strong class="text-emerald-400 font-mono">${vo2Low}–${vo2High} bpm</strong>
+              </div>
+            </div>
+            <button onclick="openVO2CalculatorModal()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-cyan-500/30 text-xs font-bold transition">
+              VO2 Max Test Calc
+            </button>
+          </div>
+
+          <!-- VO2 Max & Kettlebell Protocol Presets -->
+          <div>
+            <div class="flex items-center justify-between mb-2.5">
+              <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300">VO2 Max & Kettlebell Protocols</h3>
+              <button onclick="openCustomIntervalModal()" class="text-xs font-semibold text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
+                <i class="ph-bold ph-sliders"></i> Custom Timer
+              </button>
+            </div>
+
+            <div class="space-y-2.5">
+              ${CONDITIONING_PROTOCOLS.map(p => `
+                <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4 flex items-center justify-between gap-3">
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-slate-800 text-emerald-400 border border-slate-700">${p.badge}</span>
+                    </div>
+                    <h4 class="font-bold text-sm text-white">${p.title}</h4>
+                    <p class="text-xs text-slate-400 mt-0.5 line-clamp-2">${p.description}</p>
+                  </div>
+                  <button onclick="loadConditioningProtocol('${p.id}')" class="shrink-0 px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-emerald-500/20 text-emerald-400 border border-slate-700 hover:border-emerald-500/40 font-bold text-xs transition">
+                    Load
+                  </button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Recent Conditioning Logs -->
+          ${state.conditioningLogs.length > 0 ? `
+            <div class="bg-[#111827] border border-slate-800 rounded-2xl overflow-hidden">
+              <div class="px-4 py-3 border-b border-slate-800 text-xs font-bold uppercase tracking-wider text-slate-400">
+                Conditioning & VO2 History
+              </div>
+              <div class="divide-y divide-slate-800/60">
+                ${state.conditioningLogs.slice(0, 8).map(log => `
+                  <div class="px-4 py-3 flex items-center justify-between gap-2 text-xs">
+                    <div>
+                      <div class="font-bold text-white">${escapeHtml(log.title)}</div>
+                      <div class="text-slate-400 text-[11px]">${formatDateShort(log.date)} • ${formatSecondsMMSS(log.durationSeconds)} ${log.notes ? '• ' + escapeHtml(log.notes) : ''}</div>
+                    </div>
+                    ${log.estimatedVO2 ? `<span class="font-mono font-bold text-cyan-400 bg-cyan-950/50 border border-cyan-500/30 px-2 py-1 rounded-lg">VO2: ${log.estimatedVO2}</span>` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    function loadConditioningProtocol(protocolId) {
+      const p = CONDITIONING_PROTOCOLS.find(item => item.id === protocolId);
+      if (!p) return;
+      stopConditioningInterval();
+      const firstPhase = p.warmupSec > 0 ? 'WARMUP' : 'WORK';
+      const firstSec = p.warmupSec > 0 ? p.warmupSec : p.workSec;
+
+      state.condTimer = {
+        active: false,
+        paused: false,
+        protocolTitle: p.title,
+        phase: firstPhase,
+        currentRound: 1,
+        totalRounds: p.rounds,
+        phaseTotalSec: firstSec,
+        phaseRemainingSec: firstSec,
+        warmupSec: p.warmupSec,
+        workSec: p.workSec,
+        restSec: p.restSec,
+        cooldownSec: p.cooldownSec,
+        elapsedTotalSec: 0,
+        repCounter: 0,
+        intervalId: null
+      };
+      renderCurrentTab();
+      showToast(`Loaded "${p.title}"`, 'info');
+    }
+
+    function startConditioningTimer() {
+      const ct = state.condTimer;
+      if (ct.phase === 'READY' || ct.phase === 'DONE') {
+        ct.phase = ct.warmupSec > 0 ? 'WARMUP' : 'WORK';
+        ct.phaseTotalSec = ct.warmupSec > 0 ? ct.warmupSec : ct.workSec;
+        ct.phaseRemainingSec = ct.phaseTotalSec;
+        ct.currentRound = 1;
+        ct.elapsedTotalSec = 0;
+      }
+      ct.active = true;
+      ct.paused = false;
+      if (ct.phase === 'WORK') playWorkGoChime();
+      stopConditioningInterval();
+      ct.intervalId = setInterval(tickConditioningTimer, 1000);
+      renderCurrentTab();
+    }
+
+    function toggleConditioningPause() {
+      state.condTimer.paused = !state.condTimer.paused;
+      renderCurrentTab();
+    }
+
+    function resetConditioningTimer() {
+      stopConditioningInterval();
+      const ct = state.condTimer;
+      ct.active = false;
+      ct.paused = false;
+      ct.phase = ct.warmupSec > 0 ? 'WARMUP' : 'WORK';
+      ct.currentRound = 1;
+      ct.phaseTotalSec = ct.warmupSec > 0 ? ct.warmupSec : ct.workSec;
+      ct.phaseRemainingSec = ct.phaseTotalSec;
+      ct.elapsedTotalSec = 0;
+      ct.repCounter = 0;
+      renderCurrentTab();
+    }
+
+    function stopConditioningInterval() {
+      if (state.condTimer.intervalId) {
+        clearInterval(state.condTimer.intervalId);
+        state.condTimer.intervalId = null;
+      }
+    }
+
+    function adjustCondReps(delta) {
+      state.condTimer.repCounter = Math.max(0, state.condTimer.repCounter + delta);
+      renderCurrentTab();
+    }
+
+    function tickConditioningTimer() {
+      const ct = state.condTimer;
+      if (!ct.active || ct.paused) return;
+
+      ct.elapsedTotalSec += 1;
+      ct.phaseRemainingSec -= 1;
+
+      if (ct.phaseRemainingSec <= 3 && ct.phaseRemainingSec > 0) {
+        playCountdownBeep();
+      }
+
+      if (ct.phaseRemainingSec <= 0) {
+        // Transition to next phase
+        if (ct.phase === 'WARMUP') {
+          ct.phase = 'WORK';
+          ct.phaseTotalSec = ct.workSec;
+          ct.phaseRemainingSec = ct.workSec;
+          playWorkGoChime();
+          showToast(`Round 1/${ct.totalRounds}: WORK!`, 'success');
+        } else if (ct.phase === 'WORK') {
+          if (ct.restSec > 0 && ct.currentRound < ct.totalRounds) {
+            ct.phase = 'REST';
+            ct.phaseTotalSec = ct.restSec;
+            ct.phaseRemainingSec = ct.restSec;
+            playRecoveryChime();
+            showToast('Active Recovery', 'info');
+          } else if (ct.currentRound < ct.totalRounds) {
+            ct.currentRound += 1;
+            ct.phaseTotalSec = ct.workSec;
+            ct.phaseRemainingSec = ct.workSec;
+            playWorkGoChime();
+          } else if (ct.cooldownSec > 0) {
+            ct.phase = 'COOLDOWN';
+            ct.phaseTotalSec = ct.cooldownSec;
+            ct.phaseRemainingSec = ct.cooldownSec;
+            playRecoveryChime();
+            showToast('Cool-down phase', 'info');
+          } else {
+            completeConditioningSession();
+            return;
+          }
+        } else if (ct.phase === 'REST') {
+          ct.currentRound += 1;
+          ct.phase = 'WORK';
+          ct.phaseTotalSec = ct.workSec;
+          ct.phaseRemainingSec = ct.workSec;
+          playWorkGoChime();
+          showToast(`Round ${ct.currentRound}/${ct.totalRounds}: GO!`, 'success');
+        } else if (ct.phase === 'COOLDOWN') {
+          completeConditioningSession();
+          return;
+        }
+      }
+
+      if (state.currentTab === 'conditioning') {
+        renderCurrentTab();
+      }
+    }
+
+    function completeConditioningSession() {
+      stopConditioningInterval();
+      state.condTimer.active = false;
+      state.condTimer.phase = 'DONE';
+      state.condTimer.phaseRemainingSec = 0;
+      playPRFanfare();
+      showToast('Conditioning protocol complete!', 'pr');
+      if (state.currentTab === 'conditioning') renderCurrentTab();
+    }
+
+    function logCompletedConditioningSession() {
+      const ct = state.condTimer;
+      state.conditioningLogs.unshift({
+        id: 'cond_' + Date.now(),
+        title: ct.protocolTitle,
+        date: new Date().toISOString(),
+        durationSeconds: ct.elapsedTotalSec,
+        roundsCompleted: ct.currentRound,
+        estimatedVO2: null,
+        notes: ct.repCounter > 0 ? `${ct.repCounter} reps logged` : ''
+      });
+      saveConditioningLogs();
+      resetConditioningTimer();
+      showToast('Conditioning session saved!', 'success');
+    }
+
+    /**
+     * ============================================================================
+     * TAB 3: EXPANDED EXERCISE LIBRARY (MUSCLES, EQUIPMENT & ALTERNATIVES)
+     * ============================================================================
+     */
+    function renderLibraryView() {
+      const muscles = ['All', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Full Body/Conditioning'];
+      const equipments = ['All', 'Barbell', 'Dumbbell', 'Kettlebell', 'Bodyweight', 'Cable/Machine', 'Firefighter/Odd Object'];
+
+      const filtered = state.exercises.filter(ex => {
+        const matchM = state.libraryMuscleFilter === 'All' || ex.muscle === state.libraryMuscleFilter;
+        const matchE = state.libraryEquipFilter === 'All' || ex.equipment === state.libraryEquipFilter;
+        const q = state.librarySearch.toLowerCase();
+        const matchQ = !q || ex.name.toLowerCase().includes(q) || (ex.secondary && ex.secondary.toLowerCase().includes(q));
+        return matchM && matchE && matchQ;
+      });
+
+      return `
+        <div class="space-y-4">
+          <!-- Search & Create Header -->
+          <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <h2 class="font-extrabold text-base text-white">Exercise Library (${filtered.length})</h2>
+              <button onclick="openCreateCustomExerciseModal('')" class="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-1">
+                <i class="ph-bold ph-plus"></i> New Exercise
+              </button>
+            </div>
+
+            <div class="relative">
+              <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input
+                type="text"
+                value="${escapeHtml(state.librarySearch)}"
+                oninput="updateLibrarySearch(this.value)"
+                placeholder="Search by name or muscle (e.g., Kettlebell, Hamstrings)..."
+                class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+              />
+            </div>
+
+            <!-- Muscle Filter -->
+            <div>
+              <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Muscle Group</div>
+              <div class="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
+                ${muscles.map(m => `
+                  <button onclick="setLibraryMuscle('${m}')" class="shrink-0 px-2.5 py-1 rounded-lg text-xs font-semibold transition ${
+                    state.libraryMuscleFilter === m ? 'bg-emerald-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-300'
+                  }">
+                    ${m}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- Equipment Filter -->
+            <div>
+              <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Equipment</div>
+              <div class="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
+                ${equipments.map(eq => `
+                  <button onclick="setLibraryEquip('${eq}')" class="shrink-0 px-2.5 py-1 rounded-lg text-xs font-semibold transition ${
+                    state.libraryEquipFilter === eq ? 'bg-cyan-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-300'
+                  }">
+                    ${eq === 'Kettlebell' ? '🏠 Kettlebell' : eq}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+
+          <!-- Exercise Cards -->
+          <div class="space-y-3">
+            ${filtered.map(ex => {
+              const prs = getExercisePRs(ex.id);
+              const alts = (ex.alternatives || []).map(altId => getExerciseById(altId)).filter(Boolean);
+
+              return `
+                <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4 space-y-2.5">
+                  <div class="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 class="font-bold text-base text-white">${escapeHtml(ex.name)}</h3>
+                      <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-950/70 text-emerald-300 border border-emerald-500/30">${ex.muscle}</span>
+                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-800 text-cyan-300 border border-slate-700">${ex.equipment}</span>
+                        ${ex.secondary ? `<span class="text-[11px] text-slate-400">+ ${escapeHtml(ex.secondary)}</span>` : ''}
+                      </div>
+                    </div>
+                    <button onclick="addExerciseToActiveWorkout('${ex.id}')" class="shrink-0 px-3 py-2 rounded-xl bg-slate-800 hover:bg-emerald-500/20 text-emerald-400 border border-slate-700 hover:border-emerald-500/40 font-bold text-xs flex items-center gap-1 transition">
+                      <i class="ph-bold ph-plus"></i> Log
+                    </button>
+                  </div>
+
+                  ${ex.cues ? `<p class="text-xs text-slate-300 bg-slate-900/70 p-2.5 rounded-xl border border-slate-800/80 leading-relaxed"><strong class="text-slate-400">Form Cues:</strong> ${escapeHtml(ex.cues)}</p>` : ''}
+
+                  ${prs.best1RM.val > 0 ? `
+                    <div class="flex items-center gap-3 text-[11px] font-mono text-amber-300 bg-amber-950/25 border border-amber-500/20 px-3 py-1.5 rounded-xl">
+                      <span>🏆 Best: <strong>${prs.maxWeight.val} ${state.settings.unit} × ${prs.maxWeight.reps}</strong></span>
+                      <span>•</span>
+                      <span>Est 1RM: <strong>${prs.best1RM.val} ${state.settings.unit}</strong></span>
+                    </div>
+                  ` : ''}
+
+                  ${alts.length > 0 ? `
+                    <div class="pt-1">
+                      <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">Alternatives / Substitutions:</span>
+                      <div class="flex flex-wrap gap-1.5">
+                        ${alts.map(alt => `
+                          <button onclick="addExerciseToActiveWorkout('${alt.id}')" class="text-[11px] bg-slate-800/90 hover:bg-slate-700 text-cyan-300 border border-slate-700 px-2.5 py-1 rounded-lg flex items-center gap-1 transition" title="Add alternative directly to workout">
+                            <span>${escapeHtml(alt.name)}</span>
+                            <i class="ph-bold ph-plus text-[10px]"></i>
+                          </button>
+                        `).join('')}
+                      </div>
+                    </div>
+                  ` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function updateLibrarySearch(val) {
+      state.librarySearch = val;
+      renderCurrentTab();
+    }
+    function setLibraryMuscle(m) {
+      state.libraryMuscleFilter = m;
+      renderCurrentTab();
+    }
+    function setLibraryEquip(eq) {
+      state.libraryEquipFilter = eq;
+      renderCurrentTab();
+    }
+
+    /**
+     * ============================================================================
+     * TAB 4: ENHANCED PR TRACKING, ANALYTICS & SESSION HISTORY
+     * ============================================================================
+     */
+    function getExerciseSeriesData(exerciseId) {
+      const chronological = [...state.history].reverse();
+      const points = [];
+      chronological.forEach(w => {
+        const found = w.exercises.find(e => e.exerciseId === exerciseId);
+        if (!found || !found.sets.length) return;
+        let maxW = 0, maxR = 0, best1RM = 0, vol = 0;
+        found.sets.forEach(s => {
+          if (!s.completed) return;
+          const wt = parseFloat(s.weight) || 0;
+          const rp = parseInt(s.reps, 10) || 0;
+          const e1 = calculateEpley1RM(wt, rp);
+          if (wt > maxW) maxW = wt;
+          if (rp > maxR) maxR = rp;
+          if (e1 > best1RM) best1RM = e1;
+          vol += wt * rp;
+        });
+        points.push({
+          date: w.date,
+          label: new Date(w.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+          maxWeight: maxW,
+          maxReps: maxR,
+          est1RM: best1RM,
+          volume: Math.round(vol)
+        });
+      });
+      return points;
+    }
+
+    function renderProgressView() {
+      const unit = state.settings.unit;
+      const loggedIds = new Set();
+      state.history.forEach(w => w.exercises.forEach(e => loggedIds.add(e.exerciseId)));
+      if (!loggedIds.has(state.selectedProgressExerciseId) && loggedIds.size > 0) {
+        state.selectedProgressExerciseId = Array.from(loggedIds)[0];
+      }
+
+      const prs = getExercisePRs(state.selectedProgressExerciseId);
+      const lifetimeVolume = state.history.reduce((sum, w) => sum + calculateWorkoutVolume(w), 0);
+
+      return `
+        <div class="space-y-4">
+          <!-- Exercise PR Selector -->
+          <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4">
+            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Exercise PRs & Progression Curve</label>
+            <select
+              onchange="changeProgressExercise(this.value)"
+              class="w-full bg-slate-900 border border-slate-700 text-white font-bold text-sm rounded-xl px-3.5 py-3 focus:outline-none focus:border-emerald-500"
+            >
+              ${state.exercises.map(ex => `
+                <option value="${ex.id}" ${ex.id === state.selectedProgressExerciseId ? 'selected' : ''}>
+                  ${ex.name} (${ex.equipment})${loggedIds.has(ex.id) ? ' ★' : ''}
+                </option>
+              `).join('')}
+            </select>
+          </div>
+
+          <!-- 3 Distinct PR Trophy Cards -->
+          <div class="grid grid-cols-3 gap-2.5">
+            <!-- PR 1: Heaviest Weight -->
+            <div class="bg-gradient-to-b from-slate-800/90 to-[#111827] border border-cyan-500/35 rounded-2xl p-3 text-center">
+              <div class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-cyan-400 mb-1">
+                <i class="ph-fill ph-barbell"></i> Heaviest Wt
+              </div>
+              <div class="font-mono text-lg sm:text-xl font-extrabold text-white">
+                ${prs.maxWeight.val || '—'} <span class="text-[10px] font-normal text-slate-400">${prs.maxWeight.val ? unit : ''}</span>
+              </div>
+              <div class="text-[10px] text-slate-400 mt-0.5 truncate">
+                ${prs.maxWeight.val ? `${prs.maxWeight.reps} reps • ${formatDateShort(prs.maxWeight.date)}` : 'No data'}
+              </div>
+            </div>
+
+            <!-- PR 2: Max Reps -->
+            <div class="bg-gradient-to-b from-slate-800/90 to-[#111827] border border-purple-500/35 rounded-2xl p-3 text-center">
+              <div class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-purple-400 mb-1">
+                <i class="ph-fill ph-repeat"></i> Max Reps
+              </div>
+              <div class="font-mono text-lg sm:text-xl font-extrabold text-white">
+                ${prs.maxReps.val || '—'} <span class="text-[10px] font-normal text-slate-400">${prs.maxReps.val ? 'reps' : ''}</span>
+              </div>
+              <div class="text-[10px] text-slate-400 mt-0.5 truncate">
+                ${prs.maxReps.val ? `@ ${prs.maxReps.weight} ${unit}` : 'No data'}
+              </div>
+            </div>
+
+            <!-- PR 3: Estimated 1RM -->
+            <div class="bg-gradient-to-b from-slate-800/90 to-[#111827] border border-emerald-500/40 rounded-2xl p-3 text-center">
+              <div class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-400 mb-1">
+                <i class="ph-fill ph-trophy"></i> Est. 1RM
+              </div>
+              <div class="font-mono text-lg sm:text-xl font-extrabold text-emerald-400">
+                ${prs.best1RM.val || '—'} <span class="text-[10px] font-normal text-slate-400">${prs.best1RM.val ? unit : ''}</span>
+              </div>
+              <div class="text-[10px] text-slate-400 mt-0.5 truncate">
+                ${prs.best1RM.val ? `${prs.best1RM.weight}×${prs.best1RM.reps}` : 'Epley'}
+              </div>
+            </div>
+          </div>
+
+          <!-- Exercise Trend Line Chart -->
+          <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <h3 class="font-bold text-sm text-white">Exercise Progress</h3>
+              <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-800 text-[11px] font-semibold">
+                <button onclick="changeProgressMetric('1rm')" class="px-2 py-1 rounded-lg transition ${state.progressMetric === '1rm' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-400'}">1RM</button>
+                <button onclick="changeProgressMetric('maxWeight')" class="px-2 py-1 rounded-lg transition ${state.progressMetric === 'maxWeight' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-400'}">Weight</button>
+                <button onclick="changeProgressMetric('maxReps')" class="px-2 py-1 rounded-lg transition ${state.progressMetric === 'maxReps' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-400'}">Reps</button>
+                <button onclick="changeProgressMetric('volume')" class="px-2 py-1 rounded-lg transition ${state.progressMetric === 'volume' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-400'}">Volume</button>
+              </div>
+            </div>
+            <div id="chart-wrapper" class="w-full h-52 relative"></div>
+          </div>
+
+          <!-- Weekly Training Volume Analytics Bar Chart -->
+          <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="font-bold text-sm text-white">Weekly Training Volume</h3>
+                <p class="text-[11px] text-slate-400">Lifetime Tonnage: <strong class="text-emerald-400 font-mono">${lifetimeVolume.toLocaleString()} ${unit}</strong> across ${state.history.length} workouts</p>
+              </div>
+            </div>
+            <div id="weekly-volume-wrapper" class="w-full h-44 relative"></div>
+          </div>
+
+          <!-- Completed Workout History Accordion -->
+          <div class="space-y-2.5 pt-1">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300">Workout Log History</h3>
+            ${state.history.length === 0 ? `
+              <div class="bg-[#111827]/60 border border-slate-800 rounded-2xl p-6 text-center text-xs text-slate-400">
+                No completed workouts yet.
+              </div>
+            ` : state.history.map(workout => {
+              const vol = calculateWorkoutVolume(workout);
+              const isExpanded = state.expandedHistoryIds.has(workout.id);
+              return `
+                <div class="bg-[#111827] border border-slate-800 rounded-2xl overflow-hidden">
+                  <div onclick="toggleHistoryExpand('${workout.id}')" class="p-4 cursor-pointer hover:bg-slate-800/30 transition">
+                    <div class="flex items-start justify-between gap-2">
+                      <div>
+                        <h4 class="font-bold text-sm text-white">${escapeHtml(workout.name)}</h4>
+                        <p class="text-[11px] text-slate-400 mt-0.5">${formatDateShort(workout.date)} • ${formatSecondsMMSS(workout.durationSeconds)}</p>
+                      </div>
+                      <div class="text-right font-mono">
+                        <div class="text-xs font-bold text-emerald-400">${vol.toLocaleString()} ${unit}</div>
+                        <div class="text-[10px] text-slate-400">${workout.exercises.length} exercises</div>
+                      </div>
+                    </div>
+                  </div>
+                  ${isExpanded ? `
+                    <div class="px-4 pb-4 pt-2 border-t border-slate-800 bg-slate-900/40 space-y-2.5">
+                      ${workout.notes ? `<p class="text-xs italic text-slate-300">"${escapeHtml(workout.notes)}"</p>` : ''}
+                      ${workout.exercises.map(ex => {
+                        const meta = getExerciseById(ex.exerciseId);
+                        return `
+                          <div>
+                            <div class="font-bold text-xs text-cyan-400 mb-1">${escapeHtml(meta.name)}</div>
+                            <div class="space-y-1">
+                              ${ex.sets.map((s, idx) => `
+                                <div class="flex justify-between text-[11px] font-mono bg-slate-950/70 px-2.5 py-1 rounded-lg">
+                                  <span class="text-slate-400">Set ${idx + 1}</span>
+                                  <span class="text-white font-bold">${s.weight} ${unit} × ${s.reps}</span>
+                                  <span class="text-emerald-400">1RM: ${calculateEpley1RM(s.weight, s.reps)}</span>
+                                </div>
+                              `).join('')}
+                            </div>
+                          </div>
+                        `;
+                      }).join('')}
+                      <div class="pt-1 flex justify-end">
+                        <button onclick="deleteHistoryEntry('${workout.id}')" class="text-xs text-rose-400 hover:underline">Delete Workout</button>
+                      </div>
+                    </div>
+                  ` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function changeProgressExercise(id) {
+      state.selectedProgressExerciseId = id;
+      renderCurrentTab();
+    }
+    function changeProgressMetric(m) {
+      state.progressMetric = m;
+      renderCurrentTab();
+    }
+    function toggleHistoryExpand(id) {
+      if (state.expandedHistoryIds.has(id)) state.expandedHistoryIds.delete(id);
+      else state.expandedHistoryIds.add(id);
+      renderCurrentTab();
+    }
+    function deleteHistoryEntry(id) {
+      state.history = state.history.filter(w => w.id !== id);
+      saveHistory();
+      renderCurrentTab();
+      showToast('Workout deleted.');
+    }
+
+    function drawProgressChart() {
+      const wrapper = document.getElementById('chart-wrapper');
+      if (!wrapper) return;
+      const points = getExerciseSeriesData(state.selectedProgressExerciseId);
+      if (points.length === 0) {
+        wrapper.innerHTML = `<div class="h-full flex items-center justify-center text-xs text-slate-500">No sets logged for this exercise yet.</div>`;
+        return;
+      }
+
+      const values = points.map(p =>
+        state.progressMetric === '1rm' ? p.est1RM :
+        state.progressMetric === 'maxWeight' ? p.maxWeight :
+        state.progressMetric === 'maxReps' ? p.maxReps : p.volume
+      );
+
+      renderLineSVG(wrapper, points.map(p => p.label), values, '#10b981', '#06b6d4');
+    }
+
+    function drawWeeklyVolumeChart() {
+      const wrapper = document.getElementById('weekly-volume-wrapper');
+      if (!wrapper) return;
+
+      // Group last 6 weeks of volume
+      const weeks = [];
+      const now = new Date();
+      for (let i = 5; i >= 0; i--) {
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (i * 7 + 6));
+        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (i * 7) + 1);
+        const vol = state.history
+          .filter(w => {
+            const d = new Date(w.date);
+            return d >= start && d < end;
+          })
+          .reduce((sum, w) => sum + calculateWorkoutVolume(w), 0);
+        weeks.push({
+          label: start.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+          vol
+        });
+      }
+
+      const width = wrapper.clientWidth || 340;
+      const height = 170;
+      const maxVol = Math.max(...weeks.map(w => w.vol), 1000);
+      const padBottom = 26;
+      const padTop = 22;
+      const plotH = height - padBottom - padTop;
+      const colW = width / weeks.length;
+
+      wrapper.innerHTML = `
+        <svg viewBox="0 0 ${width} ${height}" class="w-full h-full overflow-visible">
+          ${weeks.map((wk, idx) => {
+            const barH = Math.max(4, (wk.vol / maxVol) * plotH);
+            const x = idx * colW + colW * 0.22;
+            const barW = colW * 0.56;
+            const y = padTop + plotH - barH;
+            return `
+              <rect x="${x}" y="${y}" width="${barW}" height="${barH}" rx="6" fill="${wk.vol > 0 ? '#10b981' : '#1e293b'}" opacity="0.85" />
+              <text x="${x + barW / 2}" y="${y - 6}" text-anchor="middle" fill="#cbd5e1" font-size="9" font-family="JetBrains Mono">
+                ${wk.vol > 0 ? (wk.vol >= 1000 ? (wk.vol / 1000).toFixed(1) + 'k' : wk.vol) : '0'}
+              </text>
+              <text x="${x + barW / 2}" y="${height - 6}" text-anchor="middle" fill="#94a3b8" font-size="9">${wk.label}</text>
+            `;
+          }).join('')}
+        </svg>
+      `;
+    }
+
+    function renderLineSVG(wrapper, labels, values, lineColor = '#10b981', dotStroke = '#06b6d4') {
+      const width = wrapper.clientWidth || 340;
+      const height = 205;
+      const padLeft = 42, padRight = 18, padTop = 22, padBottom = 28;
+      const minVal = Math.min(...values);
+      const maxVal = Math.max(...values);
+      const range = maxVal - minVal || (maxVal * 0.15) || 5;
+      const yMin = Math.max(0, minVal - range * 0.2);
+      const yMax = maxVal + range * 0.2;
+      const plotW = width - padLeft - padRight;
+      const plotH = height - padTop - padBottom;
+
+      const coords = values.map((val, i) => {
+        const x = values.length === 1 ? padLeft + plotW / 2 : padLeft + (i / (values.length - 1)) * plotW;
+        const y = padTop + plotH - ((val - yMin) / (yMax - yMin)) * plotH;
+        return { x, y, val, label: labels[i] };
+      });
+
+      const poly = coords.map(c => `${c.x},${c.y}`).join(' ');
+      const area = `${coords[0].x},${padTop + plotH} ${poly} ${coords[coords.length - 1].x},${padTop + plotH}`;
+      const gradId = 'grad_' + Math.random().toString(36).slice(2, 7);
+
+      const yTicks = [yMin, (yMin + yMax) / 2, yMax].map(v => ({
+        val: Math.round(v * 10) / 10,
+        y: padTop + plotH - ((v - yMin) / (yMax - yMin)) * plotH
+      }));
+
+      wrapper.innerHTML = `
+        <svg viewBox="0 0 ${width} ${height}" class="w-full h-full overflow-visible">
+          <defs>
+            <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="${lineColor}" stop-opacity="0.35"/>
+              <stop offset="100%" stop-color="${lineColor}" stop-opacity="0.0"/>
+            </linearGradient>
+          </defs>
+          ${yTicks.map(t => `
+            <line x1="${padLeft}" y1="${t.y}" x2="${width - padRight}" y2="${t.y}" stroke="#1e293b" stroke-dasharray="3 3" stroke-width="1" />
+            <text x="${padLeft - 6}" y="${t.y + 3}" text-anchor="end" fill="#94a3b8" font-size="9" font-family="JetBrains Mono">${t.val}</text>
+          `).join('')}
+          ${coords.length > 1 ? `<polygon points="${area}" fill="url(#${gradId})" />` : ''}
+          ${coords.length > 1 ? `<polyline fill="none" stroke="${lineColor}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" points="${poly}" />` : ''}
+          ${coords.map((c, idx) => `
+            <circle cx="${c.x}" cy="${c.y}" r="4.5" fill="#090d16" stroke="${dotStroke}" stroke-width="2.5" />
+            <text x="${c.x}" y="${c.y - 9}" text-anchor="middle" fill="#f8fafc" font-size="9.5" font-weight="bold" font-family="JetBrains Mono">${c.val}</text>
+            ${(coords.length <= 6 || idx === 0 || idx === coords.length - 1) ? `
+              <text x="${c.x}" y="${height - 6}" text-anchor="middle" fill="#94a3b8" font-size="9">${c.label}</text>
+            ` : ''}
+          `).join('')}
+        </svg>
+      `;
+    }
+
+    /**
+     * ============================================================================
+     * TAB 5: BODY WEIGHT & BMI TRACKER + SETTINGS / JSON BACKUP
+     * ============================================================================
+     */
+    function getHeightInMeters() {
+      if (state.settings.heightUnit === 'cm') {
+        return (parseFloat(state.settings.heightCm) || 178) / 100;
+      }
+      const ft = parseFloat(state.settings.heightFeet) || 5;
+      const inch = parseFloat(state.settings.heightInches) || 10;
+      return ((ft * 12) + inch) * 0.0254;
+    }
+
+    function calculateBMI(weightVal) {
+      const w = parseFloat(weightVal) || 0;
+      if (w <= 0) return 0;
+      const weightKg = state.settings.unit === 'kg' ? w : w * 0.45359237;
+      const heightM = getHeightInMeters();
+      if (heightM <= 0) return 0;
+      return Math.round((weightKg / (heightM * heightM)) * 10) / 10;
+    }
+
+    function getBMICategory(bmi) {
+      if (bmi <= 0) return { label: 'Enter Weight', color: 'text-slate-400', bg: 'bg-slate-800' };
+      if (bmi < 18.5) return { label: 'Underweight', color: 'text-cyan-400', bg: 'bg-cyan-500' };
+      if (bmi < 25.0) return { label: 'Normal Weight', color: 'text-emerald-400', bg: 'bg-emerald-500' };
+      if (bmi < 30.0) return { label: 'Overweight', color: 'text-amber-400', bg: 'bg-amber-500' };
+      return { label: 'Obese', color: 'text-rose-400', bg: 'bg-rose-500' };
+    }
+
+    function renderBodyAndSettingsView() {
+      const s = state.settings;
+      const unit = s.unit;
+      // Sort bodyLogs newest first
+      const sortedBody = [...state.bodyLogs].sort((a, b) => b.date.localeCompare(a.date));
+      const latestEntry = sortedBody[0];
+      const currentWeight = latestEntry ? latestEntry.weight : 0;
+      const currentBMI = calculateBMI(currentWeight);
+      const bmiCat = getBMICategory(currentBMI);
+
+      // Weight deltas
+      const oldestEntry = sortedBody[sortedBody.length - 1];
+      const allTimeDelta = (latestEntry && oldestEntry && sortedBody.length > 1)
+        ? Math.round((latestEntry.weight - oldestEntry.weight) * 10) / 10
+        : 0;
+
+      // Gauge position percentage (BMI scale 15 to 40)
+      const gaugePct = currentBMI > 0 ? Math.min(98, Math.max(2, ((currentBMI - 15) / 25) * 100)) : 50;
+      const todayISO = new Date().toISOString().slice(0, 10);
+
+      return `
+        <div class="space-y-5">
+          <!-- Body Weight & BMI Hero Dashboard -->
+          <div class="bg-gradient-to-br from-[#111827] to-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Body Composition</span>
+                <h2 class="text-lg font-extrabold text-white">Weight & BMI Tracker</h2>
+              </div>
+              <span class="px-2.5 py-1 rounded-xl text-xs font-bold bg-slate-800 border border-slate-700 ${bmiCat.color}">
+                ${bmiCat.label}
+              </span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2.5 text-center">
+              <div class="bg-slate-950/70 border border-slate-800/90 rounded-2xl p-3">
+                <div class="text-[10px] uppercase tracking-wider text-slate-400">Current Wt</div>
+                <div class="font-mono text-xl font-extrabold text-white mt-0.5">${currentWeight || '—'} <span class="text-xs font-normal text-slate-400">${currentWeight ? unit : ''}</span></div>
+              </div>
+              <div class="bg-slate-950/70 border border-slate-800/90 rounded-2xl p-3">
+                <div class="text-[10px] uppercase tracking-wider text-slate-400">BMI Score</div>
+                <div class="font-mono text-xl font-extrabold ${bmiCat.color} mt-0.5">${currentBMI || '—'}</div>
+              </div>
+              <div class="bg-slate-950/70 border border-slate-800/90 rounded-2xl p-3">
+                <div class="text-[10px] uppercase tracking-wider text-slate-400">Net Change</div>
+                <div class="font-mono text-xl font-extrabold ${allTimeDelta <= 0 ? 'text-emerald-400' : 'text-amber-400'} mt-0.5">
+                  ${sortedBody.length > 1 ? (allTimeDelta > 0 ? '+' + allTimeDelta : allTimeDelta) : '—'}
+                </div>
+              </div>
+            </div>
+
+            <!-- Visual BMI Spectrum Gauge -->
+            <div>
+              <div class="relative h-3 rounded-full overflow-hidden flex bg-slate-800">
+                <div class="h-full bg-cyan-500" style="width: 14%" title="Underweight (<18.5)"></div>
+                <div class="h-full bg-emerald-500" style="width: 26%" title="Normal (18.5 - 24.9)"></div>
+                <div class="h-full bg-amber-500" style="width: 20%" title="Overweight (25 - 29.9)"></div>
+                <div class="h-full bg-rose-500" style="width: 40%" title="Obese (30+)"></div>
+              </div>
+              <div class="relative h-4">
+                <div class="absolute -top-3.5 -translate-x-1/2 flex flex-col items-center transition-all duration-300" style="left: ${gaugePct}%">
+                  <div class="w-3.5 h-3.5 rounded-full bg-white border-2 border-slate-950 shadow"></div>
+                </div>
+              </div>
+              <div class="flex justify-between text-[10px] font-mono text-slate-400">
+                <span>15</span>
+                <span>18.5</span>
+                <span>25.0</span>
+                <span>30.0</span>
+                <span>40</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-2 leading-relaxed">
+                <i class="ph-bold ph-info text-cyan-400"></i> Note: Standard BMI does not distinguish lean muscle mass from body fat—strength athletes often sit in the 25–28 range with low body fat.
+              </p>
+            </div>
+
+            <!-- Quick Weigh-In Form -->
+            <form onsubmit="handleLogBodyWeight(event)" class="pt-3 border-t border-slate-800 grid grid-cols-12 gap-2">
+              <div class="col-span-5">
+                <input id="bw-date-input" type="date" value="${todayISO}" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2.5 text-xs text-white font-mono" />
+              </div>
+              <div class="col-span-4">
+                <input id="bw-weight-input" type="number" step="0.1" placeholder="Wt (${unit})" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2.5 text-xs text-white font-mono font-bold" />
+              </div>
+              <div class="col-span-3">
+                <button type="submit" class="w-full h-full rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs">
+                  Log
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Body Weight Trend Chart -->
+          <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4">
+            <h3 class="font-bold text-sm text-white mb-3">Body Weight Trend (${unit})</h3>
+            <div id="bodyweight-chart-wrapper" class="w-full h-48 relative"></div>
+          </div>
+
+          <!-- Weigh-In History -->
+          ${sortedBody.length > 0 ? `
+            <div class="bg-[#111827] border border-slate-800 rounded-2xl overflow-hidden">
+              <div class="px-4 py-3 border-b border-slate-800 text-xs font-bold uppercase tracking-wider text-slate-400">
+                Weigh-In History
+              </div>
+              <div class="divide-y divide-slate-800/60 max-h-52 overflow-y-auto">
+                ${sortedBody.map(entry => `
+                  <div class="px-4 py-2.5 flex items-center justify-between text-xs">
+                    <span class="font-mono text-slate-300">${entry.date}</span>
+                    <div class="flex items-center gap-3 font-mono">
+                      <span class="font-bold text-white">${entry.weight} ${unit}</span>
+                      <span class="text-cyan-400">BMI ${calculateBMI(entry.weight)}</span>
+                      <button onclick="deleteBodyEntry('${entry.id}')" class="text-slate-500 hover:text-rose-400"><i class="ph-bold ph-trash"></i></button>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- Profile & App Settings -->
+          <div class="bg-[#111827] border border-slate-800 rounded-2xl divide-y divide-slate-800">
+            <div class="p-4">
+              <h3 class="font-extrabold text-sm text-white">Profile, Units & Timer Settings</h3>
+            </div>
+
+            <!-- Height Setting for BMI -->
+            <div class="p-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div class="font-bold text-xs text-white">Height (for BMI)</div>
+                <div class="flex gap-1.5 mt-1">
+                  <button onclick="updateSetting('heightUnit', 'ft')" class="px-2 py-0.5 rounded text-[10px] font-bold ${s.heightUnit === 'ft' ? 'bg-cyan-500 text-slate-950' : 'bg-slate-800 text-slate-400'}">ft / in</button>
+                  <button onclick="updateSetting('heightUnit', 'cm')" class="px-2 py-0.5 rounded text-[10px] font-bold ${s.heightUnit === 'cm' ? 'bg-cyan-500 text-slate-950' : 'bg-slate-800 text-slate-400'}">cm</button>
+                </div>
+              </div>
+              ${s.heightUnit === 'ft' ? `
+                <div class="flex items-center gap-2">
+                  <input type="number" value="${s.heightFeet}" onchange="updateSetting('heightFeet', parseInt(this.value, 10) || 5)" class="w-14 bg-slate-900 border border-slate-700 rounded-xl py-1.5 text-center font-mono text-xs text-white" />
+                  <span class="text-xs text-slate-400">ft</span>
+                  <input type="number" value="${s.heightInches}" onchange="updateSetting('heightInches', parseInt(this.value, 10) || 0)" class="w-14 bg-slate-900 border border-slate-700 rounded-xl py-1.5 text-center font-mono text-xs text-white" />
+                  <span class="text-xs text-slate-400">in</span>
+                </div>
+              ` : `
+                <div class="flex items-center gap-2">
+                  <input type="number" value="${s.heightCm}" onchange="updateSetting('heightCm', parseInt(this.value, 10) || 175)" class="w-20 bg-slate-900 border border-slate-700 rounded-xl py-1.5 text-center font-mono text-xs text-white" />
+                  <span class="text-xs text-slate-400">cm</span>
+                </div>
+              `}
+            </div>
+
+            <!-- Age & Resting HR for VO2 Max Zones -->
+            <div class="p-4 flex items-center justify-between gap-3">
+              <div>
+                <div class="font-bold text-xs text-white">Age & Resting HR</div>
+                <div class="text-[11px] text-slate-400">Calibrates VO2 Max & Zone 2 BPM</div>
+              </div>
+              <div class="flex items-center gap-2">
+                <input type="number" value="${s.age}" onchange="updateSetting('age', parseInt(this.value, 10) || 30)" class="w-14 bg-slate-900 border border-slate-700 rounded-xl py-1.5 text-center font-mono text-xs text-white" title="Age" />
+                <span class="text-[10px] text-slate-400">yr</span>
+                <input type="number" value="${s.restingHR}" onchange="updateSetting('restingHR', parseInt(this.value, 10) || 60)" class="w-14 bg-slate-900 border border-slate-700 rounded-xl py-1.5 text-center font-mono text-xs text-white" title="Resting HR" />
+                <span class="text-[10px] text-slate-400">bpm</span>
+              </div>
+            </div>
+
+            <!-- Weight Unit -->
+            <div class="p-4 flex items-center justify-between">
+              <div class="font-bold text-xs text-white">Weight Unit</div>
+              <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs font-bold">
+                <button onclick="updateSetting('unit', 'lbs')" class="px-3 py-1 rounded-lg ${s.unit === 'lbs' ? 'bg-emerald-500 text-slate-950' : 'text-slate-400'}">LBS</button>
+                <button onclick="updateSetting('unit', 'kg')" class="px-3 py-1 rounded-lg ${s.unit === 'kg' ? 'bg-emerald-500 text-slate-950' : 'text-slate-400'}">KG</button>
+              </div>
+            </div>
+
+            <!-- Auto-Rest & Sound -->
+            <div class="p-4 flex items-center justify-between">
+              <div class="font-bold text-xs text-white">Auto-Start Rest Timer</div>
+              <button onclick="updateSetting('autoStartRest', !state.settings.autoStartRest)" class="w-11 h-6 rounded-full transition p-0.5 ${s.autoStartRest ? 'bg-emerald-500' : 'bg-slate-700'}">
+                <div class="w-5 h-5 rounded-full bg-white transition transform ${s.autoStartRest ? 'translate-x-5' : 'translate-x-0'}"></div>
+              </button>
+            </div>
+          </div>
+
+          <!-- JSON Backup & Portability -->
+          <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4 space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <i class="ph-bold ph-device-mobile text-cyan-400 text-lg"></i>
+                <h3 class="font-bold text-sm text-white">App Install & Offline Status</h3>
+              </div>
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold ${
+                state.pwa.isStandalone
+                  ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/40'
+                  : 'bg-slate-800 text-cyan-300 border border-slate-700'
+              }">
+                ${state.pwa.isStandalone ? 'INSTALLED APP' : 'PWA READY'}
+              </span>
+            </div>
+            <p class="text-xs text-slate-400">
+              ${state.pwa.isStandalone
+                ? 'Running in full-screen standalone app mode. Your data is stored privately on this device.'
+                : 'Install IronLog Pro to your Home Screen for full-screen standalone use without browser bars.'}
+            </p>
+            ${!state.pwa.isStandalone ? `
+              <button onclick="triggerNativePWAInstall()" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 hover:from-emerald-500/30 hover:to-cyan-500/30 text-emerald-300 border border-emerald-500/40 font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                <i class="ph-bold ph-download-simple"></i>
+                ${state.pwa.deferredPrompt ? 'Install Standalone App Now' : 'How to Add to Home Screen'}
+              </button>
+            ` : ''}
+          </div>
+
+          <!-- JSON Backup & Portability -->
+          <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4 space-y-3">
+            <div class="flex items-center gap-2">
+              <i class="ph-bold ph-shield-check text-emerald-400 text-lg"></i>
+              <h3 class="font-bold text-sm text-white">100% Local Data & JSON Backup</h3>
+            </div>
+            <p class="text-xs text-slate-400">All workouts, PRs, VO2 sessions, and weight logs stay privately on your device.</p>
+            <div class="grid grid-cols-2 gap-2.5">
+              <button onclick="exportDataJSON()" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 font-bold text-xs flex items-center justify-center gap-1.5">
+                <i class="ph-bold ph-download-simple"></i> Export JSON
+              </button>
+              <label class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-cyan-500/30 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                <i class="ph-bold ph-upload-simple"></i> Import JSON
+                <input type="file" accept=".json,application/json" onchange="importDataJSON(event)" class="hidden" />
+              </label>
+            </div>
+            <div class="pt-1 flex flex-wrap gap-2">
+              ${state.hasSampleData ? `<button onclick="clearSampleData()" class="px-3 py-1.5 rounded-xl bg-cyan-950/60 text-cyan-300 border border-cyan-500/30 text-xs font-semibold">Clear Sample Data</button>` : ''}
+              <button onclick="openResetAllModal()" class="px-3 py-1.5 rounded-xl bg-rose-950/50 text-rose-400 border border-rose-500/30 text-xs font-semibold">Reset All Data</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function handleLogBodyWeight(e) {
+      e.preventDefault();
+      const date = document.getElementById('bw-date-input').value;
+      const weight = parseFloat(document.getElementById('bw-weight-input').value);
+      if (!date || !weight || weight <= 0) return;
+
+      // Replace if entry exists for same date
+      state.bodyLogs = state.bodyLogs.filter(b => b.date !== date);
+      state.bodyLogs.unshift({
+        id: 'bw_' + Date.now(),
+        date,
+        weight,
+        notes: ''
+      });
+      saveBodyLogs();
+      renderCurrentTab();
+      showToast(`Logged ${weight} ${state.settings.unit} (BMI ${calculateBMI(weight)})`, 'success');
+    }
+
+    function deleteBodyEntry(id) {
+      state.bodyLogs = state.bodyLogs.filter(b => b.id !== id);
+      saveBodyLogs();
+      renderCurrentTab();
+    }
+
+    function drawBodyWeightChart() {
+      const wrapper = document.getElementById('bodyweight-chart-wrapper');
+      if (!wrapper) return;
+      const sorted = [...state.bodyLogs].sort((a, b) => a.date.localeCompare(b.date));
+      if (sorted.length === 0) {
+        wrapper.innerHTML = `<div class="h-full flex items-center justify-center text-xs text-slate-500">Log your first weigh-in above to track weight & BMI.</div>`;
+        return;
+      }
+      const labels = sorted.map(b => b.date.slice(5));
+      const values = sorted.map(b => b.weight);
+      renderLineSVG(wrapper, labels, values, '#06b6d4', '#10b981');
+    }
+
+    function updateSetting(key, value) {
+      state.settings[key] = value;
+      saveSettings();
+      renderCurrentTab();
+      showToast('Updated');
+    }
+
+    function exportDataJSON() {
+      const payload = {
+        app: 'IronLogPro',
+        version: 2,
+        exportedAt: new Date().toISOString(),
+        settings: state.settings,
+        exercises: state.exercises,
+        templates: state.templates,
+        history: state.history,
+        conditioningLogs: state.conditioningLogs,
+        bodyLogs: state.bodyLogs
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ironlog-pro-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('Backup exported!', 'success');
+    }
+
+    function importDataJSON(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (!parsed || !Array.isArray(parsed.history)) throw new Error('Invalid backup format.');
+          state.history = parsed.history;
+          if (Array.isArray(parsed.exercises)) state.exercises = parsed.exercises;
+          if (Array.isArray(parsed.templates)) state.templates = parsed.templates;
+          if (Array.isArray(parsed.conditioningLogs)) state.conditioningLogs = parsed.conditioningLogs;
+          if (Array.isArray(parsed.bodyLogs)) state.bodyLogs = parsed.bodyLogs;
+          if (parsed.settings) state.settings = { ...DEFAULT_SETTINGS, ...parsed.settings };
+          state.hasSampleData = false;
+          saveAllData();
+          localStorage.setItem(STORAGE_KEYS.SAMPLE_FLAG, 'false');
+          renderCurrentTab();
+          showToast('Backup restored successfully!', 'success');
+        } catch (err) {
+          showToast('Import failed: ' + err.message, 'error');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function clearSampleData() {
+      state.history = state.history.filter(w => !w.isSample);
+      state.conditioningLogs = state.conditioningLogs.filter(c => !c.isSample);
+      state.bodyLogs = state.bodyLogs.filter(b => !b.isSample);
+      state.hasSampleData = false;
+      saveAllData();
+      localStorage.setItem(STORAGE_KEYS.SAMPLE_FLAG, 'false');
+      renderCurrentTab();
+      showToast('Sample data cleared!', 'success');
+    }
+
+    function resetAllLocalData() {
+      Object.values(STORAGE_KEYS).forEach(k => localStorage.removeItem(k));
+      state.history = [];
+      state.conditioningLogs = [];
+      state.bodyLogs = [];
+      state.activeWorkout = null;
+      state.templates = [...DEFAULT_TEMPLATES];
+      state.exercises = [...DEFAULT_EXERCISES];
+      state.settings = { ...DEFAULT_SETTINGS };
+      state.hasSampleData = false;
+      saveAllData();
+      localStorage.setItem(STORAGE_KEYS.SAMPLE_FLAG, 'false');
+      stopRestTimer(true);
+      closeModal();
+      updateHeaderState();
+      renderCurrentTab();
+      showToast('All data erased.');
+    }
+
+    /**
+     * ============================================================================
+     * MODALS (PICKER, KB WEIGHTS, SWAP EXERCISE, VO2 MAX CALC, CUSTOM INTERVALS)
+     * ============================================================================
+     */
+    function openModal(html) {
+      document.getElementById('modal-container').innerHTML = html;
+      document.getElementById('modal-backdrop').classList.remove('hidden');
+    }
+    function closeModal() {
+      document.getElementById('modal-backdrop').classList.add('hidden');
+    }
+    document.getElementById('modal-backdrop').addEventListener('click', e => {
+      if (e.target.id === 'modal-backdrop') closeModal();
+    });
+
+    // Exercise Picker Modal
+    let pickerQuery = '', pickerMuscle = 'All';
+    function openExercisePickerModal() {
+      pickerQuery = '';
+      pickerMuscle = 'All';
+      renderExercisePickerModal();
+    }
+    function renderExercisePickerModal() {
+      const muscles = ['All', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Full Body/Conditioning'];
+      const filtered = state.exercises.filter(ex =>
+        (pickerMuscle === 'All' || ex.muscle === pickerMuscle) &&
+        ex.name.toLowerCase().includes(pickerQuery.toLowerCase())
+      );
+      openModal(`
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+          <h3 class="font-bold text-base text-white">Add Exercise</h3>
+          <button onclick="closeModal()" class="p-1.5 rounded-xl bg-slate-800 text-slate-400"><i class="ph-bold ph-x"></i></button>
+        </div>
+        <div class="p-4 space-y-2.5 border-b border-slate-800">
+          <input id="picker-search-box" type="text" value="${escapeHtml(pickerQuery)}" oninput="pickerQuery=this.value; renderExercisePickerModal();" placeholder="Search exercises..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white" />
+          <div class="flex gap-1.5 overflow-x-auto no-scrollbar">
+            ${muscles.map(m => `
+              <button onclick="pickerMuscle='${m}'; renderExercisePickerModal();" class="shrink-0 px-2.5 py-1 rounded-lg text-xs font-semibold ${pickerMuscle === m ? 'bg-emerald-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-300'}">${m}</button>
+            `).join('')}
+          </div>
+        </div>
+        <div class="flex-1 overflow-y-auto p-3 space-y-1.5">
+          ${filtered.map(ex => `
+            <button onclick="addExerciseToActiveWorkout('${ex.id}')" class="w-full text-left p-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-800 flex items-center justify-between">
+              <div>
+                <div class="font-semibold text-sm text-white">${escapeHtml(ex.name)}</div>
+                <div class="text-[11px] text-slate-400">${ex.muscle} • ${ex.equipment}</div>
+              </div>
+              <i class="ph-bold ph-plus-circle text-emerald-400 text-lg"></i>
+            </button>
+          `).join('')}
+        </div>
+        <div class="p-3 border-t border-slate-800">
+          <button onclick="openCreateCustomExerciseModal('${escapeHtml(pickerQuery)}')" class="w-full py-2.5 rounded-xl bg-slate-800 text-cyan-400 font-semibold text-xs">+ Create Custom Exercise</button>
+        </div>
+      `);
+      const inp = document.getElementById('picker-search-box');
+      if (inp && pickerQuery) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+    }
+
+    // Kettlebell Quick Weight Selector Modal
+    function openKBPresetModal(uid) {
+      const weights = state.settings.unit === 'lbs'
+        ? [10, 15, 25, 30, 35, 45, 50, 53, 60, 70, 80, 88]
+        : [4, 6, 8, 12, 14, 16, 20, 24, 28, 32, 36, 40];
+      openModal(`
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+          <h3 class="font-bold text-base text-white">Select Kettlebell Weight (${state.settings.unit})</h3>
+          <button onclick="closeModal()" class="p-1.5 rounded-xl bg-slate-800 text-slate-400"><i class="ph-bold ph-x"></i></button>
+        </div>
+        <div class="p-4 grid grid-cols-4 gap-2.5">
+          ${weights.map(w => `
+            <button onclick="applyKBWeightToExercise('${uid}', ${w})" class="py-3 rounded-xl bg-slate-800 hover:bg-purple-500/25 border border-slate-700 hover:border-purple-400 font-mono font-extrabold text-sm text-purple-300">
+              ${w}
+            </button>
+          `).join('')}
+        </div>
+      `);
+    }
+
+    // Swap Exercise Alternatives Modal
+    function openSwapExerciseModal(uid) {
+      const exItem = state.activeWorkout?.exercises.find(e => e.uid === uid);
+      if (!exItem) return;
+      const meta = getExerciseById(exItem.exerciseId);
+      const alts = (meta.alternatives || []).map(id => getExerciseById(id));
+
+      openModal(`
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+          <h3 class="font-bold text-base text-white">Swap ${escapeHtml(meta.name)}</h3>
+          <button onclick="closeModal()" class="p-1.5 rounded-xl bg-slate-800 text-slate-400"><i class="ph-bold ph-x"></i></button>
+        </div>
+        <div class="p-4 space-y-2">
+          <p class="text-xs text-slate-400 mb-2">Recommended biomechanical alternatives:</p>
+          ${alts.map(alt => `
+            <button onclick="swapExerciseInActiveWorkout('${uid}', '${alt.id}')" class="w-full text-left p-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-between">
+              <div>
+                <div class="font-bold text-sm text-white">${escapeHtml(alt.name)}</div>
+                <div class="text-[11px] text-cyan-400">${alt.equipment} • ${alt.muscle}</div>
+              </div>
+              <i class="ph-bold ph-arrows-left-right text-emerald-400"></i>
+            </button>
+          `).join('')}
+        </div>
+      `);
+    }
+
+    // VO2 Max Estimator Modal (Cooper 12-Min Run & Uth HR Ratio)
+    function openVO2CalculatorModal() {
+      const maxHR = 220 - (parseInt(state.settings.age, 10) || 32);
+      const restHR = parseInt(state.settings.restingHR, 10) || 60;
+      const uthVO2 = Math.round((15.3 * (maxHR / restHR)) * 10) / 10;
+
+      openModal(`
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+          <h3 class="font-bold text-base text-white">VO2 Max Estimator</h3>
+          <button onclick="closeModal()" class="p-1.5 rounded-xl bg-slate-800 text-slate-400"><i class="ph-bold ph-x"></i></button>
+        </div>
+        <div class="p-4 space-y-4">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5">
+            <div class="text-xs font-bold text-cyan-400">Resting HR Formula (Uth et al.)</div>
+            <div class="font-mono text-2xl font-extrabold text-white mt-1">${uthVO2} <span class="text-xs font-normal text-slate-400">mL/kg/min</span></div>
+            <button onclick="saveVO2Estimate(${uthVO2}, 'HR Ratio Estimate')" class="mt-2.5 w-full py-2 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-bold text-xs">
+              Save HR Estimate to Log
+            </button>
+          </div>
+
+          <form onsubmit="handleCooperVO2(event)" class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-2.5">
+            <div class="text-xs font-bold text-emerald-400">Cooper 12-Minute Run Test</div>
+            <p class="text-[11px] text-slate-400">Enter total distance run in 12 minutes (meters):</p>
+            <div class="flex gap-2">
+              <input id="cooper-meters" type="number" placeholder="e.g., 2650" required class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white font-mono" />
+              <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs">Calculate</button>
+            </div>
+          </form>
+        </div>
+      `);
+    }
+
+    function handleCooperVO2(e) {
+      e.preventDefault();
+      const meters = parseFloat(document.getElementById('cooper-meters').value) || 0;
+      if (meters < 500) return;
+      // Cooper formula: (meters - 504.9) / 44.73
+      const vo2 = Math.round(((meters - 504.9) / 44.73) * 10) / 10;
+      saveVO2Estimate(vo2, `Cooper 12-Min (${meters}m)`);
+    }
+
+    function saveVO2Estimate(vo2Val, label) {
+      state.conditioningLogs.unshift({
+        id: 'vo2_' + Date.now(),
+        title: label,
+        date: new Date().toISOString(),
+        durationSeconds: 720,
+        roundsCompleted: 1,
+        estimatedVO2: vo2Val,
+        notes: 'VO2 Max benchmark'
+      });
+      saveConditioningLogs();
+      closeModal();
+      renderCurrentTab();
+      showToast(`Saved VO2 Max: ${vo2Val} mL/kg/min!`, 'success');
+    }
+
+    // Custom Conditioning Interval Modal
+    function openCustomIntervalModal() {
+      openModal(`
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+          <h3 class="font-bold text-base text-white">Custom Interval / EMOM Timer</h3>
+          <button onclick="closeModal()" class="p-1.5 rounded-xl bg-slate-800 text-slate-400"><i class="ph-bold ph-x"></i></button>
+        </div>
+        <form onsubmit="handleCustomInterval(event)" class="p-4 space-y-3">
+          <div>
+            <label class="block text-xs text-slate-300 mb-1">Session Name</label>
+            <input id="ci-name" type="text" value="Custom Kettlebell / HIIT" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white" />
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Rounds</label>
+              <input id="ci-rounds" type="number" value="10" min="1" max="60" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-center font-mono text-sm text-white" />
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Work (sec)</label>
+              <input id="ci-work" type="number" value="40" min="5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-center font-mono text-sm text-white" />
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Rest (sec)</label>
+              <input id="ci-rest" type="number" value="20" min="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-center font-mono text-sm text-white" />
+            </div>
+          </div>
+          <button type="submit" class="w-full py-3 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-sm">Load Timer</button>
+        </form>
+      `);
+    }
+
+    function handleCustomInterval(e) {
+      e.preventDefault();
+      stopConditioningInterval();
+      const title = document.getElementById('ci-name').value.trim() || 'Custom Intervals';
+      const rounds = parseInt(document.getElementById('ci-rounds').value, 10) || 8;
+      const workSec = parseInt(document.getElementById('ci-work').value, 10) || 30;
+      const restSec = parseInt(document.getElementById('ci-rest').value, 10) || 15;
+
+      state.condTimer = {
+        active: false,
+        paused: false,
+        protocolTitle: title,
+        phase: 'WORK',
+        currentRound: 1,
+        totalRounds: rounds,
+        phaseTotalSec: workSec,
+        phaseRemainingSec: workSec,
+        warmupSec: 0,
+        workSec,
+        restSec,
+        cooldownSec: 0,
+        elapsedTotalSec: 0,
+        repCounter: 0,
+        intervalId: null
+      };
+      closeModal();
+      renderCurrentTab();
+    }
+
+    // Create Custom Exercise Modal
+    function openCreateCustomExerciseModal(prefill = '') {
+      openModal(`
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+          <h3 class="font-bold text-base text-white">Create Custom Exercise</h3>
+          <button onclick="closeModal()" class="p-1.5 rounded-xl bg-slate-800 text-slate-400"><i class="ph-bold ph-x"></i></button>
+        </div>
+        <form onsubmit="handleCreateCustomExercise(event)" class="p-4 space-y-3.5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Exercise Name</label>
+            <input id="ce-name" type="text" required value="${escapeHtml(prefill)}" placeholder="e.g., Double Kettlebell Front Squat" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white" />
+          </div>
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Muscle Group</label>
+              <select id="ce-muscle" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2.5 text-xs text-white">
+                <option value="Chest">Chest</option>
+                <option value="Back">Back</option>
+                <option value="Legs">Legs</option>
+                <option value="Shoulders">Shoulders</option>
+                <option value="Arms">Arms</option>
+                <option value="Core">Core</option>
+                <option value="Full Body/Conditioning">Full Body/Conditioning</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Equipment</label>
+              <select id="ce-equip" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2.5 text-xs text-white">
+                <option value="Barbell">Barbell</option>
+                <option value="Dumbbell">Dumbbell</option>
+                <option value="Kettlebell">Kettlebell</option>
+                <option value="Bodyweight">Bodyweight</option>
+                <option value="Cable/Machine">Cable/Machine</option>
+                <option value="Firefighter/Odd Object">Firefighter/Odd Object</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Form Cues (Optional)</label>
+            <input id="ce-cues" type="text" placeholder="Key coaching cues..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white" />
+          </div>
+          <button type="submit" class="w-full py-3 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-sm">Save Exercise</button>
+        </form>
+      `);
+    }
+
+    function handleCreateCustomExercise(e) {
+      e.preventDefault();
+      const name = document.getElementById('ce-name').value.trim();
+      const muscle = document.getElementById('ce-muscle').value;
+      const equipment = document.getElementById('ce-equip').value;
+      const cues = document.getElementById('ce-cues').value.trim();
+      if (!name) return;
+
+      const newEx = {
+        id: 'ex_custom_' + Date.now(),
+        name,
+        muscle,
+        secondary: '',
+        equipment,
+        targetRepRange: [8, 12],
+        cues,
+        alternatives: []
+      };
+      state.exercises.unshift(newEx);
+      saveExercises();
+      closeModal();
+      renderCurrentTab();
+      showToast(`Added "${name}" to library!`, 'success');
+    }
+
+    // Create Template Modal
+    function openCreateTemplateModal() {
+      openModal(`
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+          <h3 class="font-bold text-base text-white">Create Workout Split / Routine</h3>
+          <button onclick="closeModal()" class="p-1.5 rounded-xl bg-slate-800 text-slate-400"><i class="ph-bold ph-x"></i></button>
+        </div>
+        <form onsubmit="handleCreateTemplate(event)" class="p-4 space-y-3 overflow-y-auto">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Routine Name</label>
+            <input id="nt-name" type="text" required placeholder="e.g., Firefighter Shift Workout" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Split Category</label>
+            <select id="nt-cat" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+              <option value="Custom">Custom</option>
+              <option value="PPL">PPL</option>
+              <option value="Upper/Lower">Upper/Lower</option>
+              <option value="Firefighter">Firefighter</option>
+              <option value="Kettlebell">Kettlebell</option>
+            </select>
+          </div>
+          <div class="max-h-52 overflow-y-auto space-y-1 bg-slate-900/70 p-2 rounded-xl border border-slate-800">
+            ${state.exercises.map(ex => `
+              <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-800 cursor-pointer text-xs">
+                <input type="checkbox" name="nt-ex" value="${ex.id}" class="accent-emerald-500 w-4 h-4" />
+                <span class="text-white flex-1">${escapeHtml(ex.name)}</span>
+                <span class="text-slate-400 text-[10px]">${ex.equipment}</span>
+              </label>
+            `).join('')}
+          </div>
+          <button type="submit" class="w-full py-3 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-sm">Save Routine</button>
+        </form>
+      `);
+    }
+
+    function handleCreateTemplate(e) {
+      e.preventDefault();
+      const name = document.getElementById('nt-name').value.trim();
+      const category = document.getElementById('nt-cat').value;
+      const checked = Array.from(document.querySelectorAll('input[name="nt-ex"]:checked')).map(c => c.value);
+      if (!name || checked.length === 0) {
+        showToast('Enter a name and select exercises.', 'error');
+        return;
+      }
+      state.templates.unshift({
+        id: 'tpl_' + Date.now(),
+        name,
+        category,
+        exercises: checked.map(id => ({ exerciseId: id, defaultSets: 3, restSeconds: state.settings.defaultRestSeconds }))
+      });
+      saveTemplates();
+      closeModal();
+      renderCurrentTab();
+      showToast('Routine saved!', 'success');
+    }
+
+    function deleteTemplate(id) {
+      state.templates = state.templates.filter(t => t.id !== id);
+      saveTemplates();
+      renderCurrentTab();
+    }
+
+    // Finish / Discard / Rest Preset / Reset All Modals
+    function openFinishWorkoutModal() {
+      const vol = calculateWorkoutVolume(state.activeWorkout);
+      openModal(`
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+          <h3 class="font-bold text-base text-white">Complete Workout</h3>
+          <button onclick="closeModal()" class="p-1.5 rounded-xl bg-slate-800 text-slate-400"><i class="ph-bold ph-x"></i></button>
+        </div>
+        <div class="p-4 space-y-4">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between">
+            <div>
+              <div class="text-xs text-slate-400">Session Volume</div>
+              <div class="font-mono text-xl font-extrabold text-emerald-400">${vol.toLocaleString()} ${state.settings.unit}</div>
+            </div>
+            <i class="ph-fill ph-trophy text-3xl text-amber-400"></i>
+          </div>
+          <textarea id="finish-notes" rows="3" placeholder="Session notes (energy, pump, RPE)..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white"></textarea>
+          <div class="flex gap-2">
+            <button onclick="closeModal()" class="flex-1 py-3 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs">Keep Lifting</button>
+            <button onclick="finishActiveWorkout(document.getElementById('finish-notes').value)" class="flex-1 py-3 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs">Save Workout</button>
+          </div>
+        </div>
+      `);
+    }
+
+    function openDiscardWorkoutModal() {
+      openModal(`
+        <div class="p-5 text-center space-y-4">
+          <h3 class="font-bold text-base text-white">Discard Active Workout?</h3>
+          <p class="text-xs text-slate-400">Current uncompleted session sets will be lost.</p>
+          <div class="flex gap-2.5">
+            <button onclick="closeModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 text-slate-200 font-semibold text-xs">Cancel</button>
+            <button onclick="discardActiveWorkout()" class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white font-bold text-xs">Discard</button>
+          </div>
+        </div>
+      `);
+    }
+
+    function openRestPresetModal() {
+      openModal(`
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+          <h3 class="font-bold text-base text-white">Quick Rest Timer</h3>
+          <button onclick="closeModal()" class="p-1.5 rounded-xl bg-slate-800 text-slate-400"><i class="ph-bold ph-x"></i></button>
+        </div>
+        <div class="p-4 grid grid-cols-3 gap-2.5">
+          ${[45, 60, 90, 120, 150, 180].map(sec => `
+            <button onclick="startRestTimer(${sec}, 'Rest'); closeModal();" class="py-3 rounded-xl bg-slate-800 hover:bg-emerald-500/20 border border-slate-700 font-mono font-bold text-sm text-emerald-400">
+              ${formatSecondsMMSS(sec)}
+            </button>
+          `).join('')}
+        </div>
+      `);
+    }
+
+    function openResetAllModal() {
+      openModal(`
+        <div class="p-5 text-center space-y-4">
+          <h3 class="font-bold text-base text-white">Erase All Local Data?</h3>
+          <p class="text-xs text-slate-400">Deletes all workouts, PRs, VO2 logs, and weight history from this browser.</p>
+          <div class="flex gap-2.5">
+            <button onclick="closeModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 text-slate-200 font-semibold text-xs">Cancel</button>
+            <button onclick="resetAllLocalData()" class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white font-bold text-xs">Erase All</button>
+          </div>
+        </div>
+      `);
+    }
+
+    window.addEventListener('resize', () => {
+      if (state.currentTab === 'progress') {
+        drawProgressChart();
+        drawWeeklyVolumeChart();
+      } else if (state.currentTab === 'body') {
+        drawBodyWeightChart();
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>
